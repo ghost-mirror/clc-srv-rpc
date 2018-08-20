@@ -1,5 +1,5 @@
 package com.ghotsmirror.cltsrvrpc.server;
 
 public interface IServiceContainer {
-    public IService getService(String name);
+    IService getService(String name);
 }

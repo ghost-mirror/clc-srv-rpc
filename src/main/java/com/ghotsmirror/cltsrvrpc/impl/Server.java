@@ -1,14 +1,11 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
 import com.ghotsmirror.cltsrvrpc.server.IServer;
-import com.ghotsmirror.cltsrvrpc.server.IServiceContainer;
 import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
 
 import java.net.ServerSocket;
 import java.io.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Server implements IServer {
     private final ServerSocket serverSocket;
@@ -33,9 +30,10 @@ public class Server implements IServer {
             try {
                 pool.execute(new ClientSession(serverSocket.accept(), sessionContext));
             } catch (IOException e) {
-                continue;
+//                continue;
             }
         }
+        pool.shutdown();
     }
 
     class RejectedExecutionHandlerImpl implements RejectedExecutionHandler {

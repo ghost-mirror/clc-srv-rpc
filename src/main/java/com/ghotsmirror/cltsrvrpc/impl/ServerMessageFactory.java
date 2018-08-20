@@ -1,8 +1,10 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
-import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
+import com.ghotsmirror.cltsrvrpc.core.*;
 import com.ghotsmirror.cltsrvrpc.server.IServerMessageFactory;
 import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
+
+import java.io.IOException;
 
 public class ServerMessageFactory implements IServerMessageFactory {
     @Override
@@ -11,12 +13,17 @@ public class ServerMessageFactory implements IServerMessageFactory {
     }
 
     @Override
-    public IServerMessage createMessage(Exception exception) {
-        return new ServerMessage(0, exception, false);
-    }
+    public IServerMessage createMessage(Object obj) {
+        if(obj == null) {
+            return new ServerMessage(0, new WrongClientMessage(), false);
+        }
+        if(obj instanceof IOException) {
+            return new ServerMessage(0, new WrongRequest(), false);
+        }
+        if(obj instanceof ClassNotFoundException) {
+            return new ServerMessage(0, new WrongClass(), false);
+        }
 
-    @Override
-    public IServerMessage createMessage(Error error) {
-        return new ServerMessage(0, error, false);
+        return new ServerMessage(0, new WrongRequest(), false);
     }
 }

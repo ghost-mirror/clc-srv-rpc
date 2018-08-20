@@ -1,32 +1,21 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
-import com.ghotsmirror.cltsrvrpc.server.IServerMessageFactory;
-import com.ghotsmirror.cltsrvrpc.server.IServiceContainer;
-import com.ghotsmirror.cltsrvrpc.server.IServiceSessionPool;
-import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
+import com.ghotsmirror.cltsrvrpc.server.*;
 
 public class SessionContext implements ISessionContext {
-    private final IServiceContainer   container;
-    private final IServiceSessionPool sessionPool;
-    private final IServerMessageFactory messageFactory;
+    private final IRespondent respondent;
 
-    public SessionContext (int poolSize, int queueSize, IServiceContainer container) throws Exception {
-        this.container = container;
-        sessionPool = new ServiceSessionPool(new ServiceSessionFactory(), poolSize, queueSize);
-        sessionPool.setPoolSize(poolSize, true);
-        messageFactory = new ServerMessageFactory();
+    public SessionContext (IRespondent respondent) {
+        this.respondent = respondent;
     }
 
-    public IServiceContainer getContainer() {
-        return container;
+    @Override
+    public Object request(Object obj) {
+        return respondent.request(obj);
     }
 
-    public IServiceSessionPool getSessionPool() {
-        return sessionPool;
+    @Override
+    public void request(Object obj, IResponseHandler handler) {
+        respondent.request(obj, handler);
     }
-
-    public IServerMessageFactory getServerMessageFactory() {
-        return messageFactory;
-    }
-
 }
