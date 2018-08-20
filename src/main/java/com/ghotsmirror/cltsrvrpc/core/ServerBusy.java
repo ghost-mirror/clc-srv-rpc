@@ -1,5 +1,5 @@
 package com.ghotsmirror.cltsrvrpc.core;
 
-public class ServerBusyError extends Error{
+public class ServerBusy extends Error{
 
 }

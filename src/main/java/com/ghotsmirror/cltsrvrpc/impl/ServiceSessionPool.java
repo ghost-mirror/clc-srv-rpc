@@ -11,7 +11,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServiceSessionPool implements IServiceSessionPool {
-//    private ExecutorService pool;
     private volatile boolean isRunned;
     private volatile int queueSize = 0;
     private volatile int queueCount = 0;
@@ -21,7 +20,6 @@ public class ServiceSessionPool implements IServiceSessionPool {
 
 
     public ServiceSessionPool (ServiceSessionFactory factory, int queueSize, int poolSize) {
-//        pool = Executors.newFixedThreadPool(10);
         this.factory  = factory;
         setPoolSize(poolSize, true);
         setQueueSize(poolSize, true);
@@ -58,24 +56,44 @@ public class ServiceSessionPool implements IServiceSessionPool {
         isRunned = false;
     }
 
-    public  IServiceSession getNextSession()  {
-        synchronized (this)        {
-            if(queueCount < queue.size()) {
-                IServiceSession session = queue.poll();
-                queue.add(session);
-                queueCount++;
-                return session;
-            }
-            if(queueSize < queue.size()) {
-                IServiceSession session = factory.createServiceSession(this);
-                queue.add(session);
-                queueCount++;
-                return session;
-            }
-            return null;
+    public synchronized IServiceSession getNextSession()  {
+        if(queueCount < queue.size()) {
+            IServiceSession session = queue.poll();
+            queue.add(session);
+            queueCount++;
+            return session;
         }
+        if(queueSize < queue.size()) {
+            IServiceSession session = factory.createServiceSession(this);
+            queue.add(session);
+            queueCount++;
+            return session;
+        }
+        return null;
     }
 
 
-
 }
+
+
+/*
+class ExtendedExecutor extends ThreadPoolExecutor {
+   // ...
+   protected void afterExecute(Runnable r, Throwable t) {
+     super.afterExecute(r, t);
+     if (t == null && r instanceof Future<?>) {
+       try {
+         Object result = ((Future<?>) r).get();
+       } catch (CancellationException ce) {
+           t = ce;
+       } catch (ExecutionException ee) {
+           t = ee.getCause();
+       } catch (InterruptedException ie) {
+           Thread.currentThread().interrupt(); // ignore/reset
+       }
+     }
+     if (t != null)
+       System.out.println(t);
+   }
+ }
+ */

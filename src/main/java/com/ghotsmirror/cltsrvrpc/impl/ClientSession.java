@@ -1,10 +1,14 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
-import com.ghotsmirror.cltsrvrpc.core.*;
+import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
+import com.ghotsmirror.cltsrvrpc.core.ServerBusy;
 import com.ghotsmirror.cltsrvrpc.server.IService;
 import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
 import com.ghotsmirror.cltsrvrpc.server.IServiceSession;
 import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
+
+import com.ghotsmirror.cltsrvrpc.core.WrongClientMessage;
 
 import java.io.*;
 import java.net.Socket;
@@ -33,58 +37,43 @@ class ClientSession implements Runnable {
         }
         serviceSession = context.getSessionPool().getServiceSession();
         if(serviceSession == null) {
-            serverBusy();
-            return;
+            writeMessage(new ServerMessage(0, new ServerBusy(), false));
+            close();
+            throw new IOException("serverBusy");
         }
     }
 
     @Override
     public void run() {
-        while (true) {
-            if (context.getSessionPool().isStopped()) {
-                serverIsStopped();
-                return;
-            }
+        while (!socket.isClosed()) {
             try {
                 Object object = objectInput.readObject();
                 if(!(object instanceof IClientMessage)) {
-                    writeMessage(new ServerMessage(0, new WrongClientMessage(), false));
-                    close();
-                    return;
+                    writeMessage(context.getServerMessageFactory().createMessage(new WrongClientMessage()));
+                    continue;
                 }
                 clientMessage = (IClientMessage) object;
             } catch (IOException e) {
-                writeMessage(new ServerMessage(0, e, false));
+                writeMessage(context.getServerMessageFactory().createMessage(e));
                 close();
                 return;
             } catch (ClassNotFoundException e) {
-                writeMessage(new ServerMessage(0, new WrongClientMessage(), false));
-                close();
-                return;
+                writeMessage(context.getServerMessageFactory().createMessage(new WrongClientMessage()));
             }
 
             IService service = context.getContainer().getService(clientMessage.getService());
-            if(service == null) {
-                writeMessage(new ServerMessage(clientMessage.getId(), new WrongService(), false));
-            }
-            IServiceResult result =  serviceSession.invoke(service, clientMessage.getMethod(), clientMessage.getParams());
-            writeMessage(new ServerMessage(clientMessage.getId(), result.getObject(), result.isVoid()));
+            IServiceResult result =  serviceSession.invoke(clientMessage.getService(), clientMessage.getMethod(), clientMessage.getParams());
+            writeMessage(context.getServerMessageFactory().createMessage(clientMessage.getId(), result));
         }
     }
 
     private void writeMessage (IServerMessage message) {
         try {
             objectOutput.writeObject(message);
-            socket.close();
+            objectOutput.flush();
         } catch (IOException e) {
+            close();
         }
-    }
-
-    private void serverBusy() {
-        writeMessage(new ServerMessage(0, new ServerBusyError(), false));
-    }
-    private void serverIsStopped() {
-        writeMessage(new ServerMessage(0, new ServerStoppedError(), false));
     }
 
     private void close() {

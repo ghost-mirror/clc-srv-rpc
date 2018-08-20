@@ -1,5 +1,6 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
+import com.ghotsmirror.cltsrvrpc.core.WrongService;
 import com.ghotsmirror.cltsrvrpc.server.IService;
 import com.ghotsmirror.cltsrvrpc.server.IServiceContainer;
 
@@ -20,7 +21,11 @@ public class ServiceContainer implements IServiceContainer {
     private final HashMap<String,IService> services = new HashMap();
 
     public IService getService(String name) {
-        return services.get(name);
+        IService service = services.get(name);
+        if(service == null) {
+            return new WrongService();
+        }
+        return service;
     }
 
     public ServiceContainer(String path) throws Exception {

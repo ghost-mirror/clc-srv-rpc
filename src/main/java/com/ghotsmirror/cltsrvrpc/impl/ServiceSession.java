@@ -1,35 +1,27 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
-import com.ghotsmirror.cltsrvrpc.server.IService;
-import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
-import com.ghotsmirror.cltsrvrpc.server.IServiceSession;
-import com.ghotsmirror.cltsrvrpc.server.IServiceSessionPool;
+import com.ghotsmirror.cltsrvrpc.server.*;
 
 public class ServiceSession implements IServiceSession {
-    private final IServiceSessionPool serviceSessionPool;
+    private final IServiceContainer serviceContainer;
 
-    public ServiceSession (IServiceSessionPool serviceSessionPool) {
-        this.serviceSessionPool = serviceSessionPool;
+    public ServiceSession (IServiceContainer serviceContainer) {
+        this.serviceContainer = serviceContainer;
     }
 
     @Override
-    public IServiceResult invoke (IService service, String method, Object[] params)  {
-        return null;
-        //return service.invoke(method, params);
+    public IServiceResult invoke (String serviceName, String method, Object[] params)  {
+        try {
+            this.wait();
+            //Semaphore
+        } catch (InterruptedException e) {
+        }
+        IService service = serviceContainer.getService(serviceName);
+        return service.invoke(method, params);
     }
 
     @Override
     public void run() {
 
     }
-
-//    public void abort () {
-
-//    }
-
-//    public boolean isStopped () {
-//        return serviceSessionPool.isStopped();
-//    }
-
-
 }
