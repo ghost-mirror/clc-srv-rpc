@@ -19,8 +19,8 @@ public class Server implements IServer {
     public Server (int port, ISessionContext sessionContext) throws Exception {
         this.sessionContext = sessionContext;
         serverSocket = new ServerSocket(port);
-        queue = new CapacityQueue(1);
-        pool = new ThreadPoolExecutor(1, 1, 100, TimeUnit.SECONDS, queue,
+        queue = new CapacityQueue(3);
+        pool = new ThreadPoolExecutor(3, 3, 100, TimeUnit.SECONDS, queue,
                                        Executors.defaultThreadFactory(), new RejectedExecutionHandlerImpl());
         //Callable task;
     }

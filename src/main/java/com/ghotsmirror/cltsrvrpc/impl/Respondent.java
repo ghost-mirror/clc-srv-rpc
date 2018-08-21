@@ -29,7 +29,9 @@ public class Respondent implements IRespondent {
             return;
         }
         IClientMessage message = (IClientMessage)obj;
+
         IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
+
         handler.response(factory.createMessage(message.getId(), result));
     }
 

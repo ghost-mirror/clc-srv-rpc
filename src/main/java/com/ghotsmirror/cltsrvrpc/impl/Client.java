@@ -1,6 +1,7 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
 import com.ghotsmirror.cltsrvrpc.client.IClient;
+import com.ghotsmirror.cltsrvrpc.client.IClientMessageFactory;
 import com.ghotsmirror.cltsrvrpc.core.EServerResult;
 import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
 import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
@@ -14,12 +15,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Client implements IClient {
-    private final Transmitter transmitter;
+    private final MessageTransmitter transmitter;
     private final Thread tr;
+    private final IClientMessageFactory factory = new ClientMessageFactory();
     private AtomicInteger sessionId = new AtomicInteger(0);
 
     public Client(String host, int port) throws IOException {
-        transmitter = new Transmitter(host, port);
+        transmitter = new MessageTransmitter(host, port);
         tr = new Thread(transmitter);
         tr.start();
         System.out.println("Client connected to socket.");
@@ -32,7 +34,7 @@ public class Client implements IClient {
     public String remoteCall(String service, String method, Object[] params) throws SocketException {
         int sessionId = this.sessionId.incrementAndGet();
         System.out.println("Request : " + sessionId);
-        int id = transmitter.writeObject(new ClientMessage(sessionId, service, method, params));
+        int id = transmitter.writeMessage(factory.createMessage(sessionId, service, method, params));
         if(id == 0) {
             System.out.println("id == 0");
             return null;
@@ -43,7 +45,7 @@ public class Client implements IClient {
         }
         System.out.println("Accepted : " + id);
 
-        IServerMessage obj = transmitter.readObject(sessionId);
+        IServerMessage obj = transmitter.readMessage(sessionId);
         if(obj.getId() != sessionId) {
             System.out.println("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         }
@@ -53,7 +55,7 @@ public class Client implements IClient {
 }
 
 
-class Transmitter implements Runnable {
+class MessageTransmitter implements Runnable {
     private final Socket socket;
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;
@@ -61,11 +63,18 @@ class Transmitter implements Runnable {
     private IServerMessage msg;
     private IServerMessage id;
 
-    public Transmitter(String host, int port) throws IOException {
+    public MessageTransmitter(String host, int port) throws IOException {
         socket = new Socket("localhost", port);
         objectOutput = new ObjectOutputStream(socket.getOutputStream());
         objectInput  = new ObjectInputStream (socket.getInputStream());
         System.out.println("Client connected to socket.");
+    }
+
+    @Override
+    public void run() {
+        while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
+            readData();
+        }
     }
 
     public void close() {
@@ -83,7 +92,7 @@ class Transmitter implements Runnable {
         System.out.println("Socked closed!");
     }
 
-    public synchronized int writeObject (IClientMessage obj) throws SocketException  {
+    public synchronized int writeMessage (IClientMessage obj) throws SocketException  {
         if(socket.isClosed()) {
             throw new SocketException("Socket is closed");
         }
@@ -101,7 +110,7 @@ class Transmitter implements Runnable {
         }
     }
 
-    public IServerMessage readObject (int sessionId) {
+    public IServerMessage readMessage (int sessionId) {
         synchronized (monitor) {
             while (!isReadyObjectId(sessionId)) {
                 if(socket.isClosed()) {
@@ -213,13 +222,6 @@ class Transmitter implements Runnable {
                     }
                 }
             }
-        }
-    }
-
-    @Override
-    public void run() {
-        while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
-            readData();
         }
     }
 }
