@@ -1,23 +1,24 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
+import com.ghotsmirror.cltsrvrpc.core.EServerResult;
 import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
 
-class ServerMessage implements IServerMessage {
+public class ServerMessage implements IServerMessage {
     private final int    id;
     private final Object object;
-    private final boolean voidResult;
+    private final EServerResult type;
 
-    public ServerMessage(int id, Object object, boolean voidResult) {
-        this.id          = id;
-        this.object      = object;
-        this.voidResult  = voidResult;
+    public ServerMessage(int id, Object object, EServerResult type) {
+        this.id     = id;
+        this.object = object;
+        this.type   = type;
     }
 
     public int getId() {
         return id;
     }
-    public boolean isVoid() {
-        return voidResult;
+    public EServerResult getType() {
+        return type;
     }
     public Object getObject() {
         return object;

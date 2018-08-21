@@ -1,10 +1,8 @@
-import com.ghotsmirror.cltsrvrpc.core.WrongMethod;
-import com.ghotsmirror.cltsrvrpc.core.WrongParametrs;
-import com.ghotsmirror.cltsrvrpc.core.WrongService;
+import com.ghotsmirror.cltsrvrpc.core.EServiceResult;
 import com.ghotsmirror.cltsrvrpc.impl.ServiceContainer;
+import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
 import org.apache.log4j.Logger;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Assert;
 
@@ -24,7 +22,7 @@ public class TestService extends Assert {
 
         try {
             log.info("ADD = " + container.getService("arithmetic").invoke("sum", new Object[]{5, 10}).getObject());
-            log.info("ADD = " + container.getService("arithmetic").invoke("sum", new Object[]{new Integer(7), new Integer(12)}).getObject());
+            log.info("ADD = " + container.getService("arithmetic").invoke("sum", new Object[]{7, 12}).getObject());
             log.info("SLP = " + container.getService("sleepy").invoke("sleep", new Object[]{5}).getObject());
             log.info("MUL = " + container.getService("arithmetic").invoke("mul", new Object[]{5, 10}).getObject());
             log.info("RND = " + container.getService("stupid").invoke("rnd", new Object[]{}).getObject());
@@ -41,45 +39,54 @@ public class TestService extends Assert {
         container = new ServiceContainer("src/main/resources/service.properties");
     }
     @Test
-    public void add_0() throws Exception  {
-        assertEquals(true, container.getService("add").invoke("sum", new Object[]{5, 10}).getObject() instanceof WrongService);
+    public void add_0() {
+        IServiceResult result = container.getService("add").invoke("sum", new Object[]{5, 10});
+        assertSame(result.getType(), EServiceResult.WrongService);
     }
     @Test
-    public void arithmetic_0() throws Exception  {
-        assertEquals(15, container.getService("arithmetic").invoke("sum", new Object[]{5, 10}).getObject());
+    public void arithmetic_0() {
+        IServiceResult result = container.getService("arithmetic").invoke("sum", new Object[]{5, 10});
+        assertSame(result.getType(), EServiceResult.RESULT);
+        assertEquals(15, result.getObject());
     }
     @Test
-    public void arithmetic_1() throws Exception  {
-        assertEquals(77, container.getService("arithmetic").invoke("mul", new Object[]{7, 11}).getObject());
+    public void arithmetic_1() {
+        IServiceResult result = container.getService("arithmetic").invoke("mul", new Object[]{7, 11});
+        assertSame(result.getType(), EServiceResult.RESULT);
+        assertEquals(77, result.getObject());
     }
     @Test
-    public void arithmetic_2() throws Exception  {
-        assertEquals(4, container.getService("arithmetic").invoke("div", new Object[]{13, 3}).getObject());
+    public void arithmetic_2() {
+        IServiceResult result = container.getService("arithmetic").invoke("div", new Object[]{13, 3});
+        assertSame(result.getType(), EServiceResult.RESULT);
+        assertEquals(4, result.getObject());
     }
 //    @Test(expected = NoSuchMethodException.class)
     @Test
-    public void arithmetic_3() throws Exception  {
-        assertEquals(true, container.getService("arithmetic").invoke("mul", new Object[]{7, 11, 11}).getObject() instanceof WrongParametrs);
+    public void arithmetic_3() {
+        IServiceResult result = container.getService("arithmetic").invoke("mul", new Object[]{7, 11, 11});
+        assertSame(result.getType(), EServiceResult.WrongParametrs);
     }
     @Test
-    public void stupid_0() throws Exception  {
-        container.getService("stupid").invoke("rnd", new Object[]{});
+    public void stupid_0() {
+        IServiceResult result = container.getService("stupid").invoke("rnd", new Object[]{});
+        assertSame(result.getType(), EServiceResult.RESULT);
     }
     @Test
-    public void stupid_1() throws Exception  {
-        assertEquals(true, container.getService("stupid").invoke("mul", new Object[]{5, 10}).getObject() instanceof WrongMethod);
+    public void stupid_1() {
+        IServiceResult result = container.getService("stupid").invoke("mul", new Object[]{5, 10});
+        assertSame(result.getType(), EServiceResult.WrongMethod);
     }
     @Test
-    public void stupid_2() throws Exception  {
-        assertEquals(false, container.getService("stupid").invoke("mul", new Object[]{5, 10}).isVoid());
+    public void stupid_2() {
+        IServiceResult result = container.getService("stupid").invoke("nothing", new Object[]{});
+        assertSame(result.getType(), EServiceResult.VOID);
     }
     @Test
-    public void stupid_3() throws Exception  {
-        assertEquals(true, container.getService("stupid").invoke("nothing", new Object[]{}).isVoid());
-    }
-    @Test
-    public void sleepy_0() throws Exception  {
-        assertEquals(5, container.getService("sleepy").invoke("sleep", new Object[]{5}).getObject());
+    public void sleepy_0() {
+        IServiceResult result = container.getService("sleepy").invoke("sleep", new Object[]{5});
+        assertSame(result.getType(), EServiceResult.RESULT);
+        assertEquals(5, result.getObject());
     }
 
 }

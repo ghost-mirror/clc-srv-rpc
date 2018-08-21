@@ -1,8 +1,6 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
-import com.ghotsmirror.cltsrvrpc.core.InnerError;
-import com.ghotsmirror.cltsrvrpc.core.WrongMethod;
-import com.ghotsmirror.cltsrvrpc.core.WrongParametrs;
+import com.ghotsmirror.cltsrvrpc.core.EServiceResult;
 import com.ghotsmirror.cltsrvrpc.server.IService;
 import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
 
@@ -32,38 +30,44 @@ public class Service implements IService {
             Method[] methods = cls.getMethods();
             for (Method mm : methods) {
                 if(mm.getName().equals(method)) {
-                    return new ServiceResult(new WrongParametrs(), false);
+                    return new ServiceResult(EServiceResult.WrongParametrs);
                 }
             }
-            return new ServiceResult(new WrongMethod(), false);
+            return new ServiceResult(EServiceResult.WrongMethod);
         }
 
         try {
-            return new ServiceResult(m.invoke(impl, params), m.getReturnType()==void.class);
+            return new ServiceResult(m.invoke(impl, params), (m.getReturnType()==void.class)?EServiceResult.VOID:EServiceResult.RESULT);
         } catch (IllegalAccessException e) {
-            return new ServiceResult(new InnerError(), false);
+            return new ServiceResult(EServiceResult.InnerError);
         } catch (InvocationTargetException e) {
-            return new ServiceResult(new InnerError(), false);
-        }
-    }
-
-    private class ServiceResult implements IServiceResult {
-        private final Object  object;
-        private final boolean isVoid;
-
-        public ServiceResult(Object object, boolean isVoid) {
-            this.object = object;
-            this.isVoid = isVoid;
-        }
-
-        @Override
-        public Object getObject() {
-            return object;
-        }
-
-        @Override
-        public boolean isVoid() {
-            return isVoid;
+            return new ServiceResult(EServiceResult.InnerError);
         }
     }
 }
+
+class ServiceResult implements IServiceResult {
+    private final Object         object;
+    private final EServiceResult type;
+
+    public ServiceResult(EServiceResult type) {
+        this.object = null;
+        this.type   = type;
+    }
+
+    public ServiceResult(Object object, EServiceResult type) {
+        this.object = object;
+        this.type   = type;
+    }
+
+    @Override
+    public Object getObject() {
+        return object;
+    }
+
+    @Override
+    public EServiceResult getType() {
+        return type;
+    }
+}
+

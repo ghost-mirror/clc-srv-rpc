@@ -30,10 +30,21 @@ public class Client implements IClient {
 
     public String remoteCall(String service, String method, Object[] params) throws SocketException {
         int sessionId = this.sessionId.incrementAndGet();
-        transmitter.writeObject(new ClientMessage(sessionId, service, method, params));
+        System.out.println("Request : " + sessionId);
+        int id = transmitter.writeObject(new ClientMessage(sessionId, service, method, params));
+        if(id == 0) {
+            System.out.println("id == 0");
+            return null;
+        }
+        if(id != sessionId) {
+            System.out.println("111 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            return null;
+        }
+        System.out.println("Accepted : " + id);
+
         IServerMessage obj = transmitter.readObject(sessionId);
         if(obj.getId() != sessionId) {
-            System.out.print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            System.out.println("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         }
         System.out.print("ID : ");
         System.out.println(obj.getId());
@@ -71,17 +82,24 @@ class Transmitter implements Runnable {
         System.out.println("Socked closed!");
     }
 
-    public synchronized void writeObject (IClientMessage obj) throws SocketException  {
+    public synchronized int writeObject (IClientMessage obj) throws SocketException  {
         if(socket.isClosed()) {
             throw new SocketException("Socket is closed");
         }
         try {
             objectOutput.writeObject(obj);
             objectOutput.flush();
+            Object object = objectInput.readObject();
+            if(!(object instanceof IServerMessage)){
+                return 0;
+            }
+            return ((IServerMessage)object).getId();
         } catch (IOException e) {
             close();
+            return 0;
+        } catch (ClassNotFoundException e) {
+            return 0;
         }
-        System.out.println("Request : " + obj.getId());
     }
 
     public IServerMessage readObject (int sessionId) {

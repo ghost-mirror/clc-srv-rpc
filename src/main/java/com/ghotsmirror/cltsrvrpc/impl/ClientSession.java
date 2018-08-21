@@ -36,7 +36,7 @@ class ClientSession implements Runnable {
             Object object;
             try {
                 object = readObject();
-//                writeObject(context.request(0, e));
+                writeObject(context.requestId(object));
             } catch (SocketException e) {
                 close();
                 return;
@@ -46,7 +46,7 @@ class ClientSession implements Runnable {
                 return;
             } catch (ClassNotFoundException e) {
                 log.error("ClassNotFoundException!");
-//                writeObject(context.request(0, e));
+                writeObject(context.requestException(e));
                 continue;
             }
             context.request(object, handler);

@@ -1,6 +1,8 @@
 package com.ghotsmirror.cltsrvrpc.server;
 
 public interface IRespondent {
+    void   request(Object obj, IResponseHandler handler);
     Object request(Object obj);
-    void request(Object obj, IResponseHandler handler);
+    Object requestId(Object obj);
+    Object requestException(Exception e);
 }

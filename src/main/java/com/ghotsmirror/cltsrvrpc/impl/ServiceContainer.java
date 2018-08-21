@@ -1,15 +1,16 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
-import com.ghotsmirror.cltsrvrpc.core.WrongService;
+import com.ghotsmirror.cltsrvrpc.core.EServiceResult;
 import com.ghotsmirror.cltsrvrpc.server.IService;
 import com.ghotsmirror.cltsrvrpc.server.IServiceContainer;
+import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
+
+import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
-
-import org.apache.log4j.Logger;
 
 import java.lang.InstantiationException;
 import java.lang.ClassNotFoundException;
@@ -18,7 +19,7 @@ import java.lang.IllegalAccessException;
 public class ServiceContainer implements IServiceContainer {
     private static final Logger log = Logger.getLogger(ServiceContainer.class.getSimpleName());
     private final Properties property = new Properties();
-    private final HashMap<String,IService> services = new HashMap();
+    private final HashMap<String,IService> services = new HashMap<String,IService>();
 
     public IService getService(String name) {
         IService service = services.get(name);
@@ -81,4 +82,9 @@ public class ServiceContainer implements IServiceContainer {
         log.info("Properties are initialized");
     }
 
+    private class WrongService extends Error implements IService {
+        public IServiceResult invoke(String method, Object[] params) {
+            return new ServiceResult(EServiceResult.WrongService);
+        }
+    }
 }
