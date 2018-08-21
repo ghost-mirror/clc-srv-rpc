@@ -59,8 +59,8 @@ class Caller implements Runnable {
                 System.out.println("Sum:" + c.remoteCall("arithmetic", "sum", new Object[]{5, 10}));
                 Thread.sleep(100);
                 System.out.println("Mul:" + c.remoteCall("arithmetic", "mul", new Object[]{5, 10}));
-                Thread.sleep(100);
-                System.out.println("Sleep:" + c.remoteCall("sleepy", "sleep", new Object[]{1500}));
+//                Thread.sleep(100);
+//                System.out.println("Sleep:" + c.remoteCall("sleepy", "sleep", new Object[]{1500}));
             } catch (SocketException e) {
                 System.out.println("Caller: stoped!");
                 return;

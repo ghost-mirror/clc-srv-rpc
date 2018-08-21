@@ -1,6 +1,7 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
 import com.ghotsmirror.cltsrvrpc.client.IClient;
+import com.ghotsmirror.cltsrvrpc.core.EServerResult;
 import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
 import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
 
@@ -46,8 +47,7 @@ public class Client implements IClient {
         if(obj.getId() != sessionId) {
             System.out.println("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         }
-        System.out.print("ID : ");
-        System.out.println(obj.getId());
+        System.out.println("Message Delivered : " + obj.getId());
         return obj.getObject().toString();
     }
 }
@@ -59,6 +59,7 @@ class Transmitter implements Runnable {
     private final ObjectOutputStream objectOutput;
     private static final Object monitor = new Object();
     private IServerMessage msg;
+    private IServerMessage id;
 
     public Transmitter(String host, int port) throws IOException {
         socket = new Socket("localhost", port);
@@ -89,15 +90,13 @@ class Transmitter implements Runnable {
         try {
             objectOutput.writeObject(obj);
             objectOutput.flush();
-            Object object = objectInput.readObject();
-            if(!(object instanceof IServerMessage)){
+            IServerMessage message = readId();
+            if(message == null){
                 return 0;
             }
-            return ((IServerMessage)object).getId();
+            return message.getId();
         } catch (IOException e) {
             close();
-            return 0;
-        } catch (ClassNotFoundException e) {
             return 0;
         }
     }
@@ -109,9 +108,9 @@ class Transmitter implements Runnable {
                     return null;
                 }
                 try {
-                    System.out.println("client waiting...");
+                    System.out.println("client waiting object...");
                     monitor.wait();
-                    System.out.println("client free");
+                    System.out.println("client free object");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -119,6 +118,27 @@ class Transmitter implements Runnable {
         }
 
         return getObject();
+    }
+
+    private IServerMessage readId () {
+        synchronized (monitor) {
+            while (id == null) {
+                if(socket.isClosed()) {
+                    return null;
+                }
+                try {
+                    System.out.println("client waiting id...");
+                    monitor.wait();
+                    System.out.println("client free  id");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            IServerMessage cur_id = id;
+            id = null;
+            monitor.notifyAll();
+            return cur_id;
+        }
     }
 
     private boolean isReadyObjectId(int sessionId) {
@@ -141,28 +161,56 @@ class Transmitter implements Runnable {
         synchronized (monitor) {
             Object object;
             try {
+                System.out.println("waiting for object...");
                 object = objectInput.readObject();
+                if(object == null) {
+                    System.out.println("new object : null");
+                    return;
+                }
             } catch (IOException e) {
+                System.out.println("IOException");
                 return;
             } catch (ClassNotFoundException e) {
+                System.out.println("ClassNotFoundException");
                 return;
             }
             if(!(object instanceof IServerMessage)){
+                System.out.println("new object : null");
                 return;
             }
-            msg = (IServerMessage)object;
-            System.out.println("Oblect readed");
-            monitor.notifyAll();
-            while (msg != null) {
-                if(socket.isClosed()) {
-                    return;
+            IServerMessage message = (IServerMessage)object;
+            if(message.getType() == EServerResult.ID) {
+                id = message;
+                monitor.notifyAll();
+                System.out.println("ID delivered");
+                monitor.notifyAll();
+                while (id != null) {
+                    if (socket.isClosed()) {
+                        return;
+                    }
+                    try {
+                        System.out.println("reader waiting(ID)...");
+                        monitor.wait();
+                        System.out.println("reader free(ID)");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                try {
-                    System.out.println("reader waiting...");
-                    monitor.wait();
-                    System.out.println("reader free");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            } else {
+                msg = message;
+                System.out.println("Object delivered");
+                monitor.notifyAll();
+                while (msg != null) {
+                    if (socket.isClosed()) {
+                        return;
+                    }
+                    try {
+                        System.out.println("reader waiting(msg)...");
+                        monitor.wait();
+                        System.out.println("reader free(msg)");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

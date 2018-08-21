@@ -74,7 +74,7 @@ class ClientSession implements Runnable {
         return object;
     }
 
-    private void writeObject (Object obj)  {
+    private synchronized void writeObject (Object obj)  {
         try {
             objectOutput.writeObject(obj);
             objectOutput.flush();
