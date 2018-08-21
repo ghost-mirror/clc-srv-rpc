@@ -2,7 +2,7 @@ package com.ghotsmirror.cltsrvrpc.impl;
 
 import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
 
-public class ServerMessage implements IServerMessage {
+class ServerMessage implements IServerMessage {
     private final int    id;
     private final Object object;
     private final boolean voidResult;
@@ -19,7 +19,7 @@ public class ServerMessage implements IServerMessage {
     public boolean isVoid() {
         return voidResult;
     }
-    public Object getResult() {
+    public Object getObject() {
         return object;
     }
 

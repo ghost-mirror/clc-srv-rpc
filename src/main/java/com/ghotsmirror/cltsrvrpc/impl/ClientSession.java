@@ -1,16 +1,17 @@
 package com.ghotsmirror.cltsrvrpc.impl;
 
 import com.ghotsmirror.cltsrvrpc.server.*;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 class ClientSession implements Runnable {
+    private static final Logger log = Logger.getLogger(ClientSession.class.getSimpleName());
     private final Socket socket;
     private final ISessionContext context;
-    private final DataInputStream inputStream;
     private final ObjectInputStream objectInput;
-    private final DataOutputStream outputStream;
     private final ObjectOutputStream objectOutput;
     private final IResponseHandler handler = new ResponseHandler();
 
@@ -18,10 +19,8 @@ class ClientSession implements Runnable {
         this.socket  = socket;
         this.context = context;
         try {
-            inputStream  = new DataInputStream   (socket.getInputStream());
-            objectInput  = new ObjectInputStream (inputStream);
-            outputStream = new DataOutputStream  (socket.getOutputStream());
-            objectOutput = new ObjectOutputStream(outputStream);
+            objectOutput = new ObjectOutputStream(socket.getOutputStream());
+            objectInput  = new ObjectInputStream (socket.getInputStream());
         } catch (IOException e) {
             close();
             throw e;
@@ -30,35 +29,60 @@ class ClientSession implements Runnable {
 
     @Override
     public void run() {
-        while (!socket.isClosed()) {
+        if (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
+            log.info("Client connected!");
+        }
+        while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
             Object object;
             try {
-                object = objectInput.readObject();
+                object = readObject();
+//                writeObject(context.request(0, e));
+            } catch (SocketException e) {
+                close();
+                return;
             } catch (IOException e) {
-                writeObject(context.request(e));
+                log.error("IOException!");
                 close();
                 return;
             } catch (ClassNotFoundException e) {
-                writeObject(context.request(e));
+                log.error("ClassNotFoundException!");
+//                writeObject(context.request(0, e));
                 continue;
             }
             context.request(object, handler);
         }
+        log.info("Client socket closed run!");
     }
 
-    private void writeObject (Object obj) {
+    public void close() {
+        try {
+            objectInput.close();
+            if(!socket.isClosed()) {
+                objectOutput.close();
+                socket.close();
+            }
+        } catch (IOException e) {
+            log.error("IOException: Client socket closed!");
+        }
+        log.info("Client socket closed!");
+    }
+
+    private Object readObject () throws IOException, ClassNotFoundException {
+        log.info("waiting object...");
+        Object object = objectInput.readObject();
+        log.info("object readed");
+        return object;
+    }
+
+    private void writeObject (Object obj)  {
         try {
             objectOutput.writeObject(obj);
             objectOutput.flush();
+            log.info("result writed");
+        } catch (SocketException e) {
+            close();
         } catch (IOException e) {
             close();
-        }
-    }
-
-    private void close() {
-        try {
-            socket.close();
-        } catch (IOException e) {
         }
     }
 

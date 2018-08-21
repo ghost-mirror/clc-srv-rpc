@@ -33,8 +33,7 @@ public class Respondent implements IRespondent {
     }
 
     private boolean isNotValidRequest(Object obj) {
-        if(obj == null) return false;
-//        if(obj instanceof IClientMessage) return true;
-        return (obj instanceof IClientMessage);
+        if(obj == null) return true;
+        return !(obj instanceof IClientMessage);
     }
 }
