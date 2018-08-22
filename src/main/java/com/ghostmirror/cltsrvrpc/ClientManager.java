@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientManager {
+    private static final Logger log = Logger.getLogger(ClientManager.class.getCanonicalName());
     public static void main(String args[]) {
         BufferedReader br;
         Client client;
@@ -19,12 +20,12 @@ public class ClientManager {
         try {
             client = new Client("localhost", 2323);
         } catch (IOException e) {
-            System.out.println("Connection Error.");
+            log.error("Connection Error.");
             e.printStackTrace();
             return;
         }
-        for(int i=0; i<1000; i++) {
-            System.out.println("thread : " + i);
+        for(int i=0; i<100; i++) {
+            log.info("thread : " + i);
             Thread tr = new Thread(new Caller(client));
             threads.add(tr);
             tr.start();
@@ -46,26 +47,26 @@ public class ClientManager {
 }
 
 class Caller implements Runnable {
-    private static final org.apache.log4j.Logger log = Logger.getLogger(ServiceContainer.class.getSimpleName());
+    private static final Logger log = Logger.getLogger(Caller.class.getCanonicalName());
     private Client c;
     public Caller(Client c) {
         this.c = c;
     }
     public void run() {
-        System.out.println("Caller: run ...");
+        log.info("Caller: run ...");
         while(true) {
             try {
                 Thread.sleep(100);
-                System.out.println("Sum:" + c.remoteCall("arithmetic", "sum", new Object[]{5, 10}));
+                log.info("Sum:" + c.remoteCall("arithmetic", "sum", new Object[]{5, 10}));
                 Thread.sleep(100);
-                System.out.println("Mul:" + c.remoteCall("arithmetic", "mul", new Object[]{5, 10}));
-//                Thread.sleep(100);
-//                System.out.println("Sleep:" + c.remoteCall("sleepy", "sleep", new Object[]{1500}));
+                log.info("Mul:" + c.remoteCall("arithmetic", "mul", new Object[]{5, 10}));
+                Thread.sleep(100);
+//                log.info("Sleep:" + c.remoteCall("sleepy", "sleep", new Object[]{1000}));
             } catch (SocketException e) {
-                System.out.println("Caller: stoped!");
+                log.error("Caller: stoped!");
                 return;
             } catch (InterruptedException e) {
-                System.out.println("Caller: InterruptedException!");
+                log.error("Caller: InterruptedException!");
                 return;
             }
         }

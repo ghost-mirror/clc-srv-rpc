@@ -31,7 +31,7 @@ public class ServerRespondent implements IRespondent {
             return;
         }
         IServiceSession session = new ServiceSession(factory, container, (IClientMessage)obj, handler);
-        session.run();
+        executor.blockedExecute(session);
     }
 
     @Override

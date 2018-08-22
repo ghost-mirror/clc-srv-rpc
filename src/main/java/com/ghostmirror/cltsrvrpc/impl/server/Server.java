@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class Server extends ThreadPool implements IEexecutor{
+public class Server extends AThreadPool {
     private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
     private final ServerSocket serverSocket;
     private ISessionContext sessionContext;
@@ -46,15 +46,10 @@ public class Server extends ThreadPool implements IEexecutor{
                 continue;
             }
             try {
-                execute(new ClientSession(socket, sessionContext));
+                pool.execute(new ClientSession(socket, sessionContext));
             } catch (IOException e) {
             }
         }
-    }
-
-    @Override
-    public void execute(Runnable command) {
-        pool.execute(command);
     }
 
     @Override

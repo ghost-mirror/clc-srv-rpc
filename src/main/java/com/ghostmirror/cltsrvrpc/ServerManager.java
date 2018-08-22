@@ -37,7 +37,9 @@ public class ServerManager {
         }
         log.info("Server started");
         Thread tr = new Thread(server);
+        Thread pl = new Thread(pool);
         tr.start();
+        pl.start();
 
         while (!server.isTerminated()) {
             try {

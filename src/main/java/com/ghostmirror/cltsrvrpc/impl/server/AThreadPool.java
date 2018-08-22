@@ -2,19 +2,17 @@ package com.ghostmirror.cltsrvrpc.impl.server;
 
 import com.ghostmirror.cltsrvrpc.server.IThreadPool;
 import com.ghostmirror.cltsrvrpc.util.CapacityQueue;
-import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public abstract class ThreadPool implements IThreadPool {
+public abstract class AThreadPool implements IThreadPool {
     protected final ThreadPoolExecutor pool;
     protected final CapacityQueue queue;
 
-    public ThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
+    public AThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
         queue = new CapacityQueue(queueSize);
         pool = new ThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
                 Executors.defaultThreadFactory(), handler);

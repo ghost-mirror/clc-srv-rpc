@@ -3,6 +3,7 @@ package com.ghostmirror.cltsrvrpc.impl.client;
 import com.ghostmirror.cltsrvrpc.client.IClient;
 import com.ghostmirror.cltsrvrpc.client.IClientMessageFactory;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -10,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Client implements IClient {
+    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
     private final ClientMessageTransmitter transmitter;
     private final Thread tr;
     private final IClientMessageFactory factory = new ClientMessageFactory();
@@ -19,7 +21,7 @@ public class Client implements IClient {
         transmitter = new ClientMessageTransmitter(host, port);
         tr = new Thread(transmitter);
         tr.start();
-        System.out.println("Client connected to socket.");
+        log.info("Client connected to socket.");
     }
 
     public void close() {
@@ -32,23 +34,22 @@ public class Client implements IClient {
 
     public String remoteCall(String service, String method, Object[] params) throws SocketException {
         int sessionId = this.sessionId.incrementAndGet();
-        System.out.println("Request : " + sessionId);
         int id = transmitter.writeMessage(factory.createMessage(sessionId, service, method, params));
         if(id == 0) {
-            System.out.println("id == 0");
+            log.error("id == 0");
             return null;
         }
         if(id != sessionId) {
-            System.out.println("111 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            log.error("111 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
             return null;
         }
-        System.out.println("Accepted : " + id);
+        log.info("Accepted : " + id);
 
         IServerMessage obj = transmitter.readMessage(sessionId);
         if(obj.getId() != sessionId) {
-            System.out.println("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            log.error("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         }
-        System.out.println("Message Delivered : " + obj.getId());
+        log.info("Message Delivered : " + obj.getId());
         return obj.getObject().toString();
     }
 }
