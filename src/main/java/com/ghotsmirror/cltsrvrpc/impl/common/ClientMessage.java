@@ -1,6 +1,6 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.common;
 
-import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.common.IClientMessage;
 
 public class ClientMessage implements IClientMessage {
     private final int    id;

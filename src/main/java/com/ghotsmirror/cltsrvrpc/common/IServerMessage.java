@@ -1,4 +1,4 @@
-package com.ghotsmirror.cltsrvrpc.core;
+package com.ghotsmirror.cltsrvrpc.common;
 
 import java.io.Serializable;
 

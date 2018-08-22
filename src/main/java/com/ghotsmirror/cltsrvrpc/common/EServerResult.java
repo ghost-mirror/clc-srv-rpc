@@ -1,4 +1,4 @@
-package com.ghotsmirror.cltsrvrpc.core;
+package com.ghotsmirror.cltsrvrpc.common;
 
 public enum EServerResult {
     ID,

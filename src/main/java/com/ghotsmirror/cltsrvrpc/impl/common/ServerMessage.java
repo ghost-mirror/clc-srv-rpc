@@ -1,7 +1,7 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.common;
 
-import com.ghotsmirror.cltsrvrpc.core.EServerResult;
-import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
+import com.ghotsmirror.cltsrvrpc.common.EServerResult;
+import com.ghotsmirror.cltsrvrpc.common.IServerMessage;
 
 public class ServerMessage implements IServerMessage {
     private final int    id;

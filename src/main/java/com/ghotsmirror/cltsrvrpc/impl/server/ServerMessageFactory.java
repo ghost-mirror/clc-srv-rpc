@@ -1,6 +1,9 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
-import com.ghotsmirror.cltsrvrpc.core.*;
+import com.ghotsmirror.cltsrvrpc.common.EServerResult;
+import com.ghotsmirror.cltsrvrpc.common.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.common.IServerMessage;
+import com.ghotsmirror.cltsrvrpc.impl.common.ServerMessage;
 import com.ghotsmirror.cltsrvrpc.server.IServerMessageFactory;
 import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
 

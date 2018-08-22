@@ -1,4 +1,4 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
 import com.ghotsmirror.cltsrvrpc.server.IServiceSession;
 import com.ghotsmirror.cltsrvrpc.server.IServiceSessionPool;

@@ -1,7 +1,7 @@
 package com.ghotsmirror.cltsrvrpc;
 
-import com.ghotsmirror.cltsrvrpc.impl.Client;
-import com.ghotsmirror.cltsrvrpc.impl.ServiceContainer;
+import com.ghotsmirror.cltsrvrpc.impl.client.Client;
+import com.ghotsmirror.cltsrvrpc.impl.server.ServiceContainer;
 import org.apache.log4j.Logger;
 
 import java.io.*;

@@ -1,7 +1,8 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.client;
 
 import com.ghotsmirror.cltsrvrpc.client.IClientMessageFactory;
-import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.common.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.impl.common.ClientMessage;
 
 public class ClientMessageFactory implements IClientMessageFactory {
     @Override

@@ -1,5 +1,5 @@
-import com.ghotsmirror.cltsrvrpc.core.EServiceResult;
-import com.ghotsmirror.cltsrvrpc.impl.ServiceContainer;
+import com.ghotsmirror.cltsrvrpc.common.EServiceResult;
+import com.ghotsmirror.cltsrvrpc.impl.server.ServiceContainer;
 import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
 import org.apache.log4j.Logger;
 import org.junit.Before;
@@ -26,6 +26,7 @@ public class TestService extends Assert {
             log.info("SLP = " + container.getService("sleepy").invoke("sleep", new Object[]{5}).getObject());
             log.info("MUL = " + container.getService("arithmetic").invoke("mul", new Object[]{5, 10}).getObject());
             log.info("RND = " + container.getService("stupid").invoke("rnd", new Object[]{}).getObject());
+            log.info("DAT = " + container.getService("sleepy").invoke("currentDate", new Object[]{}).getObject());
             log.info("ADD = " + container.getService("stupid").invoke("sum", new Object[]{50, 10}).getObject());
         } catch (Exception e) {
             log.error(e);
@@ -88,5 +89,9 @@ public class TestService extends Assert {
         assertSame(result.getType(), EServiceResult.RESULT);
         assertEquals(5, result.getObject());
     }
-
+    @Test
+    public void sleepy_1() {
+        IServiceResult result = container.getService("sleepy").invoke("currentDate", new Object[]{});
+        assertSame(result.getType(), EServiceResult.RESULT);
+    }
 }

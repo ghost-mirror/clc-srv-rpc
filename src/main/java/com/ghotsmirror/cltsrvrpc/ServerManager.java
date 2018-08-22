@@ -1,6 +1,6 @@
 package com.ghotsmirror.cltsrvrpc;
 
-import com.ghotsmirror.cltsrvrpc.impl.*;
+import com.ghotsmirror.cltsrvrpc.impl.server.*;
 import com.ghotsmirror.cltsrvrpc.server.IServer;
 import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
 import org.apache.log4j.Logger;

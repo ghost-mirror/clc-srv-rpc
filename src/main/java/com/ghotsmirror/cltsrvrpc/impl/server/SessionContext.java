@@ -1,6 +1,9 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
-import com.ghotsmirror.cltsrvrpc.server.*;
+
+import com.ghotsmirror.cltsrvrpc.server.IRespondent;
+import com.ghotsmirror.cltsrvrpc.server.IResponseHandler;
+import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
 
 public class SessionContext implements ISessionContext {
     private final IRespondent respondent;

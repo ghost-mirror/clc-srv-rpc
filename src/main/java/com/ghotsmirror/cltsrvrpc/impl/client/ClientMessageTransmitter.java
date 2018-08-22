@@ -1,61 +1,17 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.client;
 
-import com.ghotsmirror.cltsrvrpc.client.IClient;
-import com.ghotsmirror.cltsrvrpc.client.IClientMessageFactory;
-import com.ghotsmirror.cltsrvrpc.core.EServerResult;
-import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
-import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
+import com.ghotsmirror.cltsrvrpc.client.IClientMessageTransmitter;
+import com.ghotsmirror.cltsrvrpc.common.EServerResult;
+import com.ghotsmirror.cltsrvrpc.common.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.common.IServerMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.atomic.AtomicInteger;
 
-
-public class Client implements IClient {
-    private final MessageTransmitter transmitter;
-    private final Thread tr;
-    private final IClientMessageFactory factory = new ClientMessageFactory();
-    private AtomicInteger sessionId = new AtomicInteger(0);
-
-    public Client(String host, int port) throws IOException {
-        transmitter = new MessageTransmitter(host, port);
-        tr = new Thread(transmitter);
-        tr.start();
-        System.out.println("Client connected to socket.");
-    }
-
-    public void close() {
-        transmitter.close();
-    }
-
-    public String remoteCall(String service, String method, Object[] params) throws SocketException {
-        int sessionId = this.sessionId.incrementAndGet();
-        System.out.println("Request : " + sessionId);
-        int id = transmitter.writeMessage(factory.createMessage(sessionId, service, method, params));
-        if(id == 0) {
-            System.out.println("id == 0");
-            return null;
-        }
-        if(id != sessionId) {
-            System.out.println("111 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-            return null;
-        }
-        System.out.println("Accepted : " + id);
-
-        IServerMessage obj = transmitter.readMessage(sessionId);
-        if(obj.getId() != sessionId) {
-            System.out.println("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-        }
-        System.out.println("Message Delivered : " + obj.getId());
-        return obj.getObject().toString();
-    }
-}
-
-
-class MessageTransmitter implements Runnable {
+public class ClientMessageTransmitter implements Runnable, IClientMessageTransmitter {
     private final Socket socket;
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;
@@ -63,7 +19,7 @@ class MessageTransmitter implements Runnable {
     private IServerMessage msg;
     private IServerMessage id;
 
-    public MessageTransmitter(String host, int port) throws IOException {
+    public ClientMessageTransmitter(String host, int port) throws IOException {
         socket = new Socket("localhost", port);
         objectOutput = new ObjectOutputStream(socket.getOutputStream());
         objectInput  = new ObjectInputStream (socket.getInputStream());
@@ -92,21 +48,23 @@ class MessageTransmitter implements Runnable {
         System.out.println("Socked closed!");
     }
 
-    public synchronized int writeMessage (IClientMessage obj) throws SocketException  {
-        if(socket.isClosed()) {
-            throw new SocketException("Socket is closed");
-        }
-        try {
-            objectOutput.writeObject(obj);
-            objectOutput.flush();
-            IServerMessage message = readId();
-            if(message == null){
+    public int writeMessage (IClientMessage obj) throws SocketException {
+        synchronized (this) {
+            if(socket.isClosed()) {
+                throw new SocketException("Socket is closed");
+            }
+            try {
+                objectOutput.writeObject(obj);
+                objectOutput.flush();
+                IServerMessage message = readId();
+                if(message == null){
+                    return 0;
+                }
+                return message.getId();
+            } catch (IOException e) {
+                close();
                 return 0;
             }
-            return message.getId();
-        } catch (IOException e) {
-            close();
-            return 0;
         }
     }
 

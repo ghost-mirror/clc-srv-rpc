@@ -1,13 +1,20 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
+import com.ghotsmirror.cltsrvrpc.util.CapacityQueue;
 import com.ghotsmirror.cltsrvrpc.server.IServer;
 import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+
 import java.net.ServerSocket;
-import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.*;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 
 public class Server implements IServer {
     private static final Logger log = Logger.getLogger(Server.class.getSimpleName());
@@ -101,28 +108,4 @@ public class Server implements IServer {
     }
 }
 
-class CapacityQueue extends LinkedBlockingQueue<Runnable> {
-    private volatile int maxCapacity;
-
-    public CapacityQueue (int maxCapacity) {
-        super();
-        this.maxCapacity = maxCapacity;
-    }
-
-    @Override
-    public synchronized boolean offer(Runnable e) {
-        if(size() >= maxCapacity) {
-            return false;
-        }
-        return super.offer(e);
-    }
-
-    public void setMaxCapacity(int maxCapacity) {
-        this.maxCapacity = maxCapacity;
-    }
-
-    public int getMaxCapacity() {
-        return  maxCapacity;
-    }
-}
 

@@ -1,6 +1,6 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
-import com.ghotsmirror.cltsrvrpc.core.EServiceResult;
+import com.ghotsmirror.cltsrvrpc.common.EServiceResult;
 import com.ghotsmirror.cltsrvrpc.server.IService;
 import com.ghotsmirror.cltsrvrpc.server.IServiceContainer;
 import com.ghotsmirror.cltsrvrpc.server.IServiceResult;

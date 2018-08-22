@@ -1,11 +1,15 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
-import com.ghotsmirror.cltsrvrpc.core.IClientMessage;
-import com.ghotsmirror.cltsrvrpc.server.*;
+import com.ghotsmirror.cltsrvrpc.common.IClientMessage;
+import com.ghotsmirror.cltsrvrpc.server.IRespondent;
+import com.ghotsmirror.cltsrvrpc.server.IServerMessageFactory;
+import com.ghotsmirror.cltsrvrpc.server.IServiceContainer;
+import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
+import com.ghotsmirror.cltsrvrpc.server.IResponseHandler;
 
 public class Respondent implements IRespondent {
     private final IServerMessageFactory factory;
-    private final IServiceContainer     container;
+    private final IServiceContainer container;
 
     public Respondent(IServerMessageFactory factory, IServiceContainer container) {
         this.factory   = factory;

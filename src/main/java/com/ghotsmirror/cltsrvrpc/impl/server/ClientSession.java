@@ -1,9 +1,14 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.server;
 
-import com.ghotsmirror.cltsrvrpc.server.*;
+import com.ghotsmirror.cltsrvrpc.server.IResponseHandler;
+import com.ghotsmirror.cltsrvrpc.server.ISessionContext;
+
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -74,20 +79,21 @@ class ClientSession implements Runnable {
         return object;
     }
 
-    private synchronized void writeObject (Object obj)  {
-        try {
-            objectOutput.writeObject(obj);
-            objectOutput.flush();
-            log.info("result writed");
-        } catch (SocketException e) {
-            close();
-        } catch (IOException e) {
-            close();
+    private void writeObject (Object obj)  {
+        synchronized(this) {
+            try {
+                objectOutput.writeObject(obj);
+                objectOutput.flush();
+                log.info("result writed");
+            } catch (SocketException e) {
+                close();
+            } catch (IOException e) {
+                close();
+            }
         }
     }
 
     class ResponseHandler implements IResponseHandler {
-
         @Override
         public void response(Object obj) {
             writeObject(obj);

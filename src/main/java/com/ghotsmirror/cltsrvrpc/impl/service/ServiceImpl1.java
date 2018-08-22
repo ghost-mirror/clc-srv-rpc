@@ -1,4 +1,4 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.service;
 
 public class ServiceImpl1 {
   public Integer sum (Integer a, Integer b) {return a+b;}

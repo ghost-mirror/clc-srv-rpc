@@ -1,6 +1,6 @@
 package com.ghotsmirror.cltsrvrpc.server;
 
-import com.ghotsmirror.cltsrvrpc.core.IServerMessage;
+import com.ghotsmirror.cltsrvrpc.common.IServerMessage;
 
 public interface IServerMessageFactory {
     IServerMessage createMessage(int id, IServiceResult result);

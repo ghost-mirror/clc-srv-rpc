@@ -1,6 +1,6 @@
 package com.ghotsmirror.cltsrvrpc.server;
 
-import com.ghotsmirror.cltsrvrpc.core.EServiceResult;
+import com.ghotsmirror.cltsrvrpc.common.EServiceResult;
 
 public interface IServiceResult {
     Object getObject();

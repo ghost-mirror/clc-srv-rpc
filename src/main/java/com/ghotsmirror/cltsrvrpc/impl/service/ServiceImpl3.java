@@ -1,6 +1,7 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.service;
 
 import java.lang.Thread;
+import java.util.Date;
 
 public class ServiceImpl3 {
     public Integer sleep (Integer ms) {
@@ -9,5 +10,9 @@ public class ServiceImpl3 {
         } catch (InterruptedException e) {
         }
         return ms;
+    }
+
+    public Date currentDate() {
+        return new Date();
     }
 }

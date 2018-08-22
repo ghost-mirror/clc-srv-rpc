@@ -1,4 +1,4 @@
-package com.ghotsmirror.cltsrvrpc.impl;
+package com.ghotsmirror.cltsrvrpc.impl.service;
 
 import java.util.Random;
 
