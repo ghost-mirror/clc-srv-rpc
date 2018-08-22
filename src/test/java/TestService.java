@@ -1,6 +1,6 @@
-import com.ghotsmirror.cltsrvrpc.common.EServiceResult;
-import com.ghotsmirror.cltsrvrpc.impl.server.ServiceContainer;
-import com.ghotsmirror.cltsrvrpc.server.IServiceResult;
+import com.ghostmirror.cltsrvrpc.common.EServiceResult;
+import com.ghostmirror.cltsrvrpc.impl.server.ServiceContainer;
+import com.ghostmirror.cltsrvrpc.server.IServiceResult;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
