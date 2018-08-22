@@ -8,7 +8,8 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class ServiceSessionPool extends AThreadPool implements IEexecutor {
-    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
     private Runnable command;
 
     public ServiceSessionPool (int queueSize, int poolSize) {
@@ -90,7 +91,8 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
     }
 
     private boolean canExecute() {
-        return pool.getMaximumPoolSize() >  pool.getActiveCount();
+        return queue.size() <  queue.getMaxCapacity();
+//        return pool.getMaximumPoolSize() >  pool.getActiveCount();
     }
 }
 
@@ -99,7 +101,7 @@ class ServiceSessionRejected implements RejectedExecutionHandler {
 
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-        log.error("Connection Rejected!");
+        log.debug("Connection Rejected!");
         ISession session = (ISession)r;
         session.rejected();
     }

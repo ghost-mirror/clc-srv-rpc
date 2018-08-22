@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AThreadPool implements IThreadPool {
     protected final ThreadPoolExecutor pool;
-    protected final CapacityQueue queue;
+    protected CapacityQueue queue;
 
     public AThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
         queue = new CapacityQueue(queueSize);
-        pool = new ThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
+        pool  = new ThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
                 Executors.defaultThreadFactory(), handler);
     }
 

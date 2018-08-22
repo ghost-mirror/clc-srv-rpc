@@ -13,7 +13,8 @@ import java.net.Socket;
 import java.net.SocketException;
 
 public class ClientMessageTransmitter implements Runnable, IClientMessageTransmitter {
-    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Client");
     private final Socket socket;
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;

@@ -1,9 +1,13 @@
 package com.ghostmirror.cltsrvrpc.impl.server;
 
 import com.ghostmirror.cltsrvrpc.common.IClientMessage;
+import com.ghostmirror.cltsrvrpc.impl.common.DataLogger;
 import com.ghostmirror.cltsrvrpc.server.*;
+import org.apache.log4j.Logger;
 
 public class ServerRespondent implements IRespondent {
+//    private static final Logger log = Logger.getLogger(ClientSession.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
     private final IServerMessageFactory factory;
     private final IServiceContainer     container;
     private final IEexecutor            executor;
@@ -20,6 +24,7 @@ public class ServerRespondent implements IRespondent {
             return factory.createError(obj);
         }
         IClientMessage message = (IClientMessage)obj;
+        log.info(DataLogger.client_request(message));
         IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
         return factory.createMessage(message, result);
     }
@@ -30,7 +35,9 @@ public class ServerRespondent implements IRespondent {
             handler.response(factory.createError(obj));
             return;
         }
-        ISession session = new ServiceSession(factory, container, (IClientMessage)obj, handler);
+        IClientMessage message = (IClientMessage)obj;
+        log.info(DataLogger.client_request(message));
+        ISession session = new ServiceSession(factory, container, message, handler);
         executor.blockedExecute(session);
     }
 

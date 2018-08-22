@@ -19,7 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 
 public class Server extends AThreadPool {
-    private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
     private final ServerSocket serverSocket;
     private ISessionContext sessionContext;
     private IServerContext  serverContext;

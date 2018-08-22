@@ -5,7 +5,7 @@ import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 public class ClientException extends Exception {
     private final String message;
 
-    public ClientException(String message) {
+    private ClientException(String message) {
         this.message = message;
     }
 
@@ -35,7 +35,6 @@ public class ClientException extends Exception {
             case WrongObject:      msg += "Wrong Object"; break;
             default:               msg += "Undefined Errror";
         }
-
         raise(msg);
     }
 }

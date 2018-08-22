@@ -8,5 +8,5 @@ public interface IServerMessageFactory {
     IServerMessage createMessageId(Object obj);
     IServerMessage createMessageException(Exception e);
     IServerMessage createError(Object obj);
-    IServerMessage rejectedMessage(int id);
+    IServerMessage rejectedMessage(IClientMessage msg);
 }

@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientManager {
-    private static final Logger log = Logger.getLogger(ClientManager.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(ClientManager.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Client");
     public static void main(String args[]) {
         BufferedReader br;
         Client client;
@@ -24,7 +25,7 @@ public class ClientManager {
             log.error("Connection Error.");
             e.printStackTrace();
             return;
-        }
+    }
         for(int i=0; i<1000; i++) {
             log.info("thread : " + i);
             Thread tr = new Thread(new Caller(client));
@@ -57,24 +58,19 @@ class Caller implements Runnable {
         log.info("Caller: run ...");
         while(true) {
             try {
-                Thread.sleep(100);
                 c.remoteCall("arithmetic", "sum", new Object[]{33, 11});
-                Thread.sleep(100);
                 c.remoteCall("arithmetic", "mul", new Object[]{5, 10});
-                Thread.sleep(100);
                 c.remoteCall("sleepy", "sleep", new Object[]{1});
-                Thread.sleep(100);
                 c.remoteCall("stupid",     "nothing");
-                Thread.sleep(100);
-                c.remoteCall("sleepy", "sleep", new Object[]{1});
+                c.remoteCall("sleepy", "currentDate");
             } catch (ClientException e) {
-                log.error(e.getMessage());
+//                log.error(e.getMessage());
             } catch (SocketException e) {
                 log.error("Caller: stoped!");
                 return;
-            } catch (InterruptedException e) {
-                log.error("Caller: InterruptedException!");
-                return;
+//            } catch (InterruptedException e) {
+//                log.error("Caller: InterruptedException!");
+//                return;
             }
         }
     }

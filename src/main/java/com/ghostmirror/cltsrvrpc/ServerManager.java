@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class ServerManager {
-    private static final Logger log = Logger.getLogger(ServerManager.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(ServerManager.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
 
     public static void main(String[] args) {
         IServerMessageFactory factory;

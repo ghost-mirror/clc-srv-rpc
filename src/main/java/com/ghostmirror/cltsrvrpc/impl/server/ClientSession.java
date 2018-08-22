@@ -13,7 +13,8 @@ import java.net.Socket;
 import java.net.SocketException;
 
 class ClientSession implements Runnable {
-    private static final Logger log = Logger.getLogger(ClientSession.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(ClientSession.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
     private final Socket socket;
     private final ISessionContext context;
     private final ObjectInputStream objectInput;

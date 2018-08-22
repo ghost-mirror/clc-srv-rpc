@@ -17,7 +17,8 @@ import java.lang.ClassNotFoundException;
 import java.lang.IllegalAccessException;
 
 public class ServiceContainer implements IServiceContainer {
-    private static final Logger log = Logger.getLogger(ServiceContainer.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(ServiceContainer.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
     private final Properties property = new Properties();
     private final HashMap<String,IService> services = new HashMap<String,IService>();
 

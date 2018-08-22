@@ -85,12 +85,16 @@ public class TestService extends Assert {
     }
     @Test
     public void sleepy_0() {
-        IServiceResult result = container.getService("sleepy").invoke("sleep", new Object[]{5});
-        assertSame(result.getType(), EServiceResult.RESULT);
-        assertEquals(5, result.getObject());
+        IServiceResult result = container.getService("sleepy").invoke("sleep", new Object[]{});
+        assertSame(result.getType(), EServiceResult.WrongParametrs);
     }
     @Test
     public void sleepy_1() {
+        IServiceResult result = container.getService("sleepy").invoke("sleep", new Object[]{5});
+        assertSame(result.getType(), EServiceResult.VOID);
+    }
+    @Test
+    public void sleepy_2() {
         IServiceResult result = container.getService("sleepy").invoke("currentDate", new Object[]{});
         assertSame(result.getType(), EServiceResult.RESULT);
     }

@@ -24,6 +24,6 @@ public class ServiceSession implements ISession {
 
     @Override
     public void rejected() {
-        handler.response(factory.rejectedMessage(message.getId()));
+        handler.response(factory.rejectedMessage(message));
     }
 }
