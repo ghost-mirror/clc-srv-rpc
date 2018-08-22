@@ -15,18 +15,22 @@ public class ClientMessage implements IClientMessage {
         this.params  = params;
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public String getService() {
         return service;
     }
 
+    @Override
     public String getMethod() {
         return method;
     }
 
+    @Override
     public Object[] getParams() {
         return params;
     }

@@ -42,13 +42,13 @@ public class Client implements IClient {
             ClientException.raise("id == 0");
         }
         if(id != sessionId) {
-            ClientException.raise("id != sessionId !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            ClientException.raise("Accepted ID("+id+") != Session ID("+sessionId+") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         log.debug("Accepted : " + id);
 
         IServerMessage obj = transmitter.readMessage(sessionId);
-        if(obj.getId() != sessionId) {
-            ClientException.raise("obj.getId() != sessionId !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        if(obj.getId() != sessionId || obj.getRequest().getId() != sessionId) {
+            ClientException.raise("Response ID("+obj.getId()+"/"+obj.getRequest().getId()+") != Session ID("+sessionId+") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         log.debug("Message Delivered : " + obj.getId());
 
@@ -58,6 +58,20 @@ public class Client implements IClient {
     }
 
     private void logger_request (int sessionId, String service, String method, Object[] params) {
+        log.info(log_message("request", sessionId, service, method, params));
+    }
+
+    private void logger_response (IServerMessage obj) {
+        String msg  = log_message("response", obj.getId(), obj.getRequest().getService(), obj.getRequest().getMethod(), obj.getRequest().getParams());
+
+        if(obj.getType() == EServerResult.RESULT) {
+            log.info(msg + ".result(" + obj.getObject().getClass().getSimpleName() + ":" + obj.getObject().toString() + ")");
+        } else {
+            log.info(msg + ".result(void)");
+        }
+    }
+
+    private String log_message (String type, int sessionId, String service, String method, Object[] params) {
         String par;
         if(params.length == 0) {
             par = "void";
@@ -69,14 +83,6 @@ public class Client implements IClient {
                 par +=  "," + o.getClass().getSimpleName() + ":" + o.toString();
             }
         }
-        log.info("request(" + sessionId + "): service(" + service + ").method(" + method + ").params(" + par + ")");
-    }
-
-    private void logger_response (IServerMessage obj) {
-        if(obj.getType() == EServerResult.RESULT) {
-            log.info("response(" + obj.getId() + "): result(" + obj.getObject().getClass().getSimpleName() + ":" + obj.getObject().toString() + ")");
-        } else {
-            log.info("response(" + obj.getId() + "): result(void)");
-        }
+        return  type + "(" + sessionId + "): service(" + service + ").method(" + method + ").params(" + par + ")";
     }
 }

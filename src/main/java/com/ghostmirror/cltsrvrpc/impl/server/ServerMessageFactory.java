@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class ServerMessageFactory implements IServerMessageFactory {
     @Override
-    public IServerMessage createMessage(int id, IServiceResult result) {
+    public IServerMessage createMessage(IClientMessage msg, IServiceResult result) {
         EServerResult type;
         switch(result.getType()) {
             case VOID:           type = EServerResult.VOID;           break;
@@ -22,36 +22,40 @@ public class ServerMessageFactory implements IServerMessageFactory {
             case InnerError:     type = EServerResult.InnerError;     break;
             default:             type = EServerResult.InnerError;
         }
-        return new ServerMessage(id, result.getObject(), type);
+        return new ServerMessage(msg.getId(), result.getObject(), type, msg);
     }
 
     @Override
     public IServerMessage rejectedMessage(int id) {
-        return new ServerMessage(id, id, EServerResult.Rejected);
+        return new ServerMessage(id, id, EServerResult.Rejected, null);
     }
 
     @Override
     public IServerMessage createMessageId(Object obj) {
-        int id = (obj instanceof IClientMessage)?((IClientMessage)obj).getId():0;
-        return new ServerMessage(id, id, EServerResult.ID);
+        if(obj instanceof IClientMessage) {
+            int id = ((IClientMessage)obj).getId();
+            return new ServerMessage(id, id, EServerResult.ID, (IClientMessage)obj);
+        } else {
+            return new ServerMessage(0, 0, EServerResult.ID, null);
+        }
     }
 
     @Override
     public IServerMessage createMessageException(Exception e) {
         if(e instanceof IOException) {
-            return new ServerMessage(0, e, EServerResult.WrongRequest);
+            return new ServerMessage(0, e, EServerResult.WrongRequest, null);
         }
         if(e instanceof ClassNotFoundException) {
-            return new ServerMessage(0, e, EServerResult.WrongClass);
+            return new ServerMessage(0, e, EServerResult.WrongClass, null);
         }
-        return new ServerMessage(0, e, EServerResult.WrongRequest);
+        return new ServerMessage(0, e, EServerResult.WrongRequest, null);
     }
 
     @Override
     public IServerMessage createError(Object obj) {
         if(obj == null) {
-            return new ServerMessage(0, null, EServerResult.WrongObjectNull);
+            return new ServerMessage(0, null, EServerResult.WrongObjectNull, null);
         }
-        return new ServerMessage(0, null, EServerResult.WrongObject);
+        return new ServerMessage(0, null, EServerResult.WrongObject, null);
     }
 }

@@ -19,7 +19,7 @@ public class ServiceSession implements ISession {
     @Override
     public void run() {
         IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
-        handler.response(factory.createMessage(message.getId(), result));
+        handler.response(factory.createMessage(message, result));
     }
 
     @Override

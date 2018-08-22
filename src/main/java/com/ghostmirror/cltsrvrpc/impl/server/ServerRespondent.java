@@ -21,7 +21,7 @@ public class ServerRespondent implements IRespondent {
         }
         IClientMessage message = (IClientMessage)obj;
         IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
-        return factory.createMessage(message.getId(), result);
+        return factory.createMessage(message, result);
     }
 
     @Override
