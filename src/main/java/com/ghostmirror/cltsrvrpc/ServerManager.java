@@ -1,8 +1,7 @@
 package com.ghostmirror.cltsrvrpc;
 
 import com.ghostmirror.cltsrvrpc.impl.server.*;
-import com.ghostmirror.cltsrvrpc.server.IServer;
-import com.ghostmirror.cltsrvrpc.server.ISessionContext;
+import com.ghostmirror.cltsrvrpc.server.*;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -13,13 +12,23 @@ public class ServerManager {
     private static final Logger log = Logger.getLogger(ServerManager.class.getCanonicalName());
 
     public static void main(String[] args) {
-        ISessionContext context;
-        IServer server;
+        IServerMessageFactory factory;
+        IServiceContainer     container;
+        ServiceSessionPool    pool;
+        IRespondent           respondent;
+        ISessionContext       sessionContext;
+        IServerContext        serverContext;
+        IThreadPool           server;
         BufferedReader br;
 
         try {
-            context = new SessionContext(new ServerRespondent(new ServerMessageFactory(), new ServiceContainer("src/main/resources/service.properties")));
-            server = new Server(Integer.parseInt(args[0]), context);
+            factory    = new ServerMessageFactory();
+            container  = new ServiceContainer("src/main/resources/service.properties");
+            pool       = new ServiceSessionPool(10, 10);
+            respondent = new ServerRespondent(factory, container, pool);
+            sessionContext   = new SessionContext(respondent);
+            serverContext    = new ServerContext(pool);
+            server     = new Server(Integer.parseInt(args[0]), 10, 10, serverContext, sessionContext);
             br = new BufferedReader(new InputStreamReader(System.in));
         } catch (Exception e) {
             log.error("Initialization error");

@@ -1,19 +1,17 @@
 package com.ghostmirror.cltsrvrpc.impl.server;
 
 import com.ghostmirror.cltsrvrpc.common.IClientMessage;
-import com.ghostmirror.cltsrvrpc.server.IRespondent;
-import com.ghostmirror.cltsrvrpc.server.IServerMessageFactory;
-import com.ghostmirror.cltsrvrpc.server.IServiceContainer;
-import com.ghostmirror.cltsrvrpc.server.IServiceResult;
-import com.ghostmirror.cltsrvrpc.server.IResponseHandler;
+import com.ghostmirror.cltsrvrpc.server.*;
 
 public class ServerRespondent implements IRespondent {
     private final IServerMessageFactory factory;
-    private final IServiceContainer container;
+    private final IServiceContainer     container;
+    private final IEexecutor            executor;
 
-    public ServerRespondent(IServerMessageFactory factory, IServiceContainer container) {
+    public ServerRespondent(IServerMessageFactory factory, IServiceContainer container, IEexecutor executor) {
         this.factory   = factory;
         this.container = container;
+        this.executor  = executor;
     }
 
     @Override
@@ -32,11 +30,8 @@ public class ServerRespondent implements IRespondent {
             handler.response(factory.createError(obj));
             return;
         }
-        IClientMessage message = (IClientMessage)obj;
-
-        IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
-
-        handler.response(factory.createMessage(message.getId(), result));
+        IServiceSession session = new ServiceSession(factory, container, (IClientMessage)obj, handler);
+        session.run();
     }
 
     @Override

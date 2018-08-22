@@ -1,94 +1,36 @@
 package com.ghostmirror.cltsrvrpc.impl.server;
 
-import com.ghostmirror.cltsrvrpc.server.IServiceSession;
-import com.ghostmirror.cltsrvrpc.server.IServiceSessionPool;
+import com.ghostmirror.cltsrvrpc.server.IEexecutor;
+import com.ghostmirror.cltsrvrpc.server.IThreadPool;
+import com.ghostmirror.cltsrvrpc.util.CapacityQueue;
+import org.apache.log4j.Logger;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 
-public class ServiceSessionPool implements IServiceSessionPool {
-    private volatile boolean isRunned;
-    private volatile int queueSize;
-    private volatile int queueCount = 0;
-    private final Queue<IServiceSession> queue = new ConcurrentLinkedQueue<IServiceSession>();
-    private final ServiceSessionFactory factory;
-    private int poolSize;
+public class ServiceSessionPool extends ThreadPool implements IEexecutor {
+    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
 
+    public ServiceSessionPool (int queueSize, int poolSize) {
+        super(queueSize, poolSize, new ServiceSessionRejected());
 
-    public ServiceSessionPool (ServiceSessionFactory factory, int queueSize, int poolSize) {
-        this.factory  = factory;
-        setPoolSize(poolSize, true);
-        setQueueSize(poolSize, true);
-        start();
+    }
+    @Override
+    public void run() {
+
     }
 
-    public void setPoolSize(int poolSize, boolean urgent) {
-        this.poolSize = poolSize;
+    @Override
+    public void execute(Runnable command) {
+
     }
-
-    public void setQueueSize(int queueSize, boolean urgent) {
-        this.queueSize = queueSize;
-    }
-
-    public IServiceSession getServiceSession() {
-        return null;
-    }
-
-    public boolean isStopped () {
-        return isRunned;
-    }
-
-    public void start() {
-        isRunned = true;
-    }
-
-    public void stop() {
-        isRunned = false;
-    }
-
-    public void abort() {
-        isRunned = false;
-    }
-
-    public synchronized IServiceSession getNextSession()  {
-        if(queueCount < queue.size()) {
-            IServiceSession session = queue.poll();
-            queue.add(session);
-            queueCount++;
-            return session;
-        }
-/*        if(queueSize < queue.size()) {
-            IServiceSession session = factory.createServiceSession(this);
-            queue.add(session);
-            queueCount++;
-            return session;
-        }
-*/
-        return null;
-    }
-
-
 }
 
+class ServiceSessionRejected implements RejectedExecutionHandler {
+    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
 
-/*
-class ExtendedExecutor extends ThreadPoolExecutor {
-   // ...
-   protected void afterExecute(Runnable r, Throwable t) {
-     super.afterExecute(r, t);
-     if (t == null && r instanceof Future<?>) {
-       try {
-         Object result = ((Future<?>) r).get();
-       } catch (CancellationException ce) {
-           t = ce;
-       } catch (ExecutionException ee) {
-           t = ee.getCause();
-       } catch (InterruptedException ie) {
-           Thread.currentThread().interrupt(); // ignore/reset
-       }
-     }
-     if (t != null)
-       System.out.println(t);
-   }
- }
- */
+    @Override
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+        log.info("Connection Rejected!");
+        ((ClientSession)r).close();
+    }
+}

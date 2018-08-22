@@ -1,7 +1,9 @@
 package com.ghostmirror.cltsrvrpc.impl.server;
 
+import com.ghostmirror.cltsrvrpc.server.IEexecutor;
+import com.ghostmirror.cltsrvrpc.server.IServerContext;
+import com.ghostmirror.cltsrvrpc.server.IThreadPool;
 import com.ghostmirror.cltsrvrpc.util.CapacityQueue;
-import com.ghostmirror.cltsrvrpc.server.IServer;
 import com.ghostmirror.cltsrvrpc.server.ISessionContext;
 import org.apache.log4j.Logger;
 
@@ -16,22 +18,20 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class Server implements IServer {
+public class Server extends ThreadPool implements IEexecutor{
     private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
     private final ServerSocket serverSocket;
-    private final ThreadPoolExecutor pool;
-    private final CapacityQueue queue;
     private ISessionContext sessionContext;
+    private IServerContext  serverContext;
 
-    public Server (int port, ISessionContext sessionContext) throws Exception {
+    public Server (int port, int queueSize, int poolSize, IServerContext serverContext, ISessionContext sessionContext) throws Exception {
+        super(queueSize, poolSize, new ClientSessionRejected());
+        this.serverContext  = serverContext;
         this.sessionContext = sessionContext;
         serverSocket = new ServerSocket(port);
-        queue = new CapacityQueue(3);
-        pool = new ThreadPoolExecutor(3, 3, 100, TimeUnit.SECONDS, queue,
-                                       Executors.defaultThreadFactory(), new RejectedExecutionHandlerImpl());
-        //Callable task;
     }
 
+    @Override
     public void run() {
         log.info("runned....");
         while(!pool.isShutdown()) {
@@ -46,66 +46,45 @@ public class Server implements IServer {
                 continue;
             }
             try {
-                pool.execute(new ClientSession(socket, sessionContext));
+                execute(new ClientSession(socket, sessionContext));
             } catch (IOException e) {
             }
         }
     }
 
-    class RejectedExecutionHandlerImpl implements RejectedExecutionHandler {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            log.info("Connection Rejected!");
-            ((ClientSession)r).close();
-        }
+    @Override
+    public void execute(Runnable command) {
+        pool.execute(command);
     }
 
-    public void setQueueSize(int queueSize) {
-        queue.setMaxCapacity(queueSize);
-    }
-
-    public void setPoolSize (int poolSize) {
-        pool.setMaximumPoolSize(poolSize);
-    }
-
-    public void setCoreSize (int corePoolSize) {
-        pool.setCorePoolSize(corePoolSize);
-
-    }
-    public void setKeepAlive(long time) {
-        pool.setKeepAliveTime(time, TimeUnit.SECONDS);
-    }
-
+    @Override
     public void shutdown() {
         log.info("Shutting down...");
-        pool.shutdown();
+        super.shutdown();
         try {
             serverSocket.close();
         } catch (IOException e) {
         }
     }
 
+    @Override
     public void shutdown(int wait) {
         log.info("Shutting down...");
-        pool.shutdown();
-        try {
-            pool.awaitTermination(wait, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-        }
-
+        super.shutdown(wait);
         try {
             serverSocket.close();
         } catch (IOException e) {
         }
-    }
-
-    public boolean isShutdown() {
-        return pool.isShutdown();
-    }
-
-    public boolean isTerminated() {
-        return pool.isTerminated();
     }
 }
 
 
+class ClientSessionRejected implements RejectedExecutionHandler {
+    private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
+
+    @Override
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+        log.info("Connection Rejected!");
+        ((ClientSession)r).close();
+    }
+}
