@@ -56,7 +56,7 @@ class ClientSession implements Runnable {
             }
             context.request(object, handler);
         }
-        log.info("Client socket closed run!");
+        log.debug("Client socket closed run!");
     }
 
     public void close() {
@@ -73,9 +73,9 @@ class ClientSession implements Runnable {
     }
 
     private Object readObject () throws IOException, ClassNotFoundException {
-        log.info("waiting object...");
+        log.debug("waiting object...");
         Object object = objectInput.readObject();
-        log.info("object readed");
+        log.debug("object readed");
         return object;
     }
 
@@ -84,7 +84,7 @@ class ClientSession implements Runnable {
             try {
                 objectOutput.writeObject(obj);
                 objectOutput.flush();
-                log.info("result writed");
+                log.debug("result writed");
             } catch (SocketException e) {
                 close();
             } catch (IOException e) {

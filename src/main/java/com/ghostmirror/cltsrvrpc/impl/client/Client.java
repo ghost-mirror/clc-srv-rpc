@@ -1,7 +1,9 @@
 package com.ghostmirror.cltsrvrpc.impl.client;
 
+import com.ghostmirror.cltsrvrpc.client.ClientException;
 import com.ghostmirror.cltsrvrpc.client.IClient;
 import com.ghostmirror.cltsrvrpc.client.IClientMessageFactory;
+import com.ghostmirror.cltsrvrpc.common.EServerResult;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 import org.apache.log4j.Logger;
 
@@ -28,28 +30,53 @@ public class Client implements IClient {
         transmitter.close();
     }
 
-    public String remoteCall(String service, String method) throws SocketException {
+    public IServerMessage remoteCall(String service, String method) throws ClientException, SocketException {
         return  remoteCall(service, method, new Object[]{});
     }
 
-    public String remoteCall(String service, String method, Object[] params) throws SocketException {
+    public IServerMessage remoteCall(String service, String method, Object[] params) throws ClientException, SocketException {
         int sessionId = this.sessionId.incrementAndGet();
+        logger_request(sessionId, service, method, params);
         int id = transmitter.writeMessage(factory.createMessage(sessionId, service, method, params));
         if(id == 0) {
-            log.error("id == 0");
-            return null;
+            ClientException.raise("id == 0");
         }
         if(id != sessionId) {
-            log.error("111 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-            return null;
+            ClientException.raise("id != sessionId !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
-        log.info("Accepted : " + id);
+        log.debug("Accepted : " + id);
 
         IServerMessage obj = transmitter.readMessage(sessionId);
         if(obj.getId() != sessionId) {
-            log.error("222 eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            ClientException.raise("obj.getId() != sessionId !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
-        log.info("Message Delivered : " + obj.getId());
-        return obj.getObject().toString();
+        log.debug("Message Delivered : " + obj.getId());
+
+        ClientException.raiseOnError(obj);
+        logger_response(obj);
+        return obj;
+    }
+
+    private void logger_request (int sessionId, String service, String method, Object[] params) {
+        String par;
+        if(params.length == 0) {
+            par = "void";
+        } else {
+            Object o = params[0];
+            par = o.getClass().getSimpleName() + ":" + o.toString();
+            for (int i=1; i<params.length; i++) {
+                o = params[i];
+                par +=  "," + o.getClass().getSimpleName() + ":" + o.toString();
+            }
+        }
+        log.info("request(" + sessionId + "): service(" + service + ").method(" + method + ").params(" + par + ")");
+    }
+
+    private void logger_response (IServerMessage obj) {
+        if(obj.getType() == EServerResult.RESULT) {
+            log.info("response(" + obj.getId() + "): result(" + obj.getObject().getClass().getSimpleName() + ":" + obj.getObject().toString() + ")");
+        } else {
+            log.info("response(" + obj.getId() + "): result(void)");
+        }
     }
 }

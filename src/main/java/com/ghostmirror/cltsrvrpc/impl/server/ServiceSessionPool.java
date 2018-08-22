@@ -1,6 +1,7 @@
 package com.ghostmirror.cltsrvrpc.impl.server;
 
 import com.ghostmirror.cltsrvrpc.server.IEexecutor;
+import com.ghostmirror.cltsrvrpc.server.ISession;
 import org.apache.log4j.Logger;
 
 import java.util.concurrent.RejectedExecutionHandler;
@@ -21,17 +22,17 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
             while(!pool.isShutdown()) {
                 while (command == null) {
                     try {
-                        log.info("wait fo comand...");
+                        log.debug("wait fo comand...");
                         this.wait();
                     } catch (InterruptedException e) {
 
                     }
                 }
                 if(command != null) {
-                    log.info("execute...");
+                    log.debug("execute...");
                     pool.execute(command);
                     command = null;
-                    log.info("notify...");
+                    log.debug("notify...");
                     this.notifyAll();
                 }
             }
@@ -39,39 +40,51 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
     }
 
     @Override
-    public void execute(Runnable command) {
-        synchronized (this) {
-            while (this.command != null) {
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
+    public void execute(ISession session) {
+        while(true) {
+            synchronized (this) {
+                while (command != null) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
 
+                    }
                 }
             }
-            if(this.command == null && canExecute()) {
-                this.command = command;
-                this.notifyAll();
+
+            synchronized (this) {
+                if(command == null) {
+                    command = session;
+                    this.notifyAll();
+                    return;
+                }
             }
         }
     }
 
     @Override
-    public void blockedExecute(Runnable command) {
-        synchronized (this) {
-            log.info("new command");
-            while (this.command != null) {
-                try {
-                    log.info("command wait...");
-                    this.wait();
-                } catch (InterruptedException e) {
+    public void blockedExecute(ISession session) {
+        while(true) {
+            synchronized (this) {
+                log.debug("new command");
+                while (command != null) {
+                    try {
+                        log.debug("command wait...");
+                        this.wait();
+                    } catch (InterruptedException e) {
 
+                    }
                 }
             }
-            log.info("command can exec");
-            if(this.command == null && canExecute()) {
-                this.command = command;
-                log.info("command notify");
-                this.notifyAll();
+
+            synchronized (this) {
+                log.debug("command can exec");
+                if(command == null && canExecute()) {
+                    command = session;
+                    log.debug("command notify");
+                    this.notifyAll();
+                    return;
+                }
             }
         }
     }
@@ -86,7 +99,8 @@ class ServiceSessionRejected implements RejectedExecutionHandler {
 
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-        log.info("Connection Rejected!");
-        ((ClientSession)r).close();
+        log.error("Connection Rejected!");
+        ISession session = (ISession)r;
+        session.rejected();
     }
 }

@@ -56,10 +56,10 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                 throw new SocketException("Socket is closed");
             }
             try {
-                log.info("Request : " + obj.getId());
+                log.debug("Request : " + obj.getId());
                 objectOutput.writeObject(obj);
                 objectOutput.flush();
-                log.info("Request send");
+                log.debug("Request send");
                 IServerMessage message = readId();
                 if(message == null){
                     return 0;
@@ -79,9 +79,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     return null;
                 }
                 try {
-                    log.info("client waiting object...");
+                    log.debug("client waiting object...");
                     monitor.wait();
-                    log.info("client free object");
+                    log.debug("client free object");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -98,9 +98,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     return null;
                 }
                 try {
-                    log.info("client waiting id...");
+                    log.debug("client waiting id...");
                     monitor.wait();
-                    log.info("client free  id");
+                    log.debug("client free  id");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -132,10 +132,10 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         synchronized (monitor) {
             Object object;
             try {
-                log.info("waiting for object...");
+                log.debug("waiting for object...");
                 object = objectInput.readObject();
                 if(object == null) {
-                    log.info("new object : null");
+                    log.debug("new object : null");
                     return;
                 }
             } catch (IOException e) {
@@ -153,32 +153,32 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
             if(message.getType() == EServerResult.ID) {
                 id = message;
                 monitor.notifyAll();
-                log.info("ID delivered");
+                log.debug("ID delivered");
                 monitor.notifyAll();
                 while (id != null) {
                     if (socket.isClosed()) {
                         return;
                     }
                     try {
-                        log.info("reader waiting(ID)...");
+                        log.debug("reader waiting(ID)...");
                         monitor.wait();
-                        log.info("reader free(ID)");
+                        log.debug("reader free(ID)");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             } else {
                 msg = message;
-                log.info("Object delivered");
+                log.debug("Object delivered");
                 monitor.notifyAll();
                 while (msg != null) {
                     if (socket.isClosed()) {
                         return;
                     }
                     try {
-                        log.info("reader waiting(msg)...");
+                        log.debug("reader waiting(msg)...");
                         monitor.wait();
-                        log.info("reader free(msg)");
+                        log.debug("reader free(msg)");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

@@ -40,7 +40,7 @@ public class Server extends AThreadPool {
                 socket = serverSocket.accept();
             } catch (IOException e) {
                 if (serverSocket.isClosed()) {
-                    log.info("Server socket closed");
+                    log.error("Server socket closed");
                     pool.shutdown();
                 }
                 continue;

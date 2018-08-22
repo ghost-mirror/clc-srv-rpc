@@ -6,4 +6,5 @@ public interface IServerMessage extends Serializable {
     EServerResult getType();
     int getId();
     Object getObject();
+//    IClientMessage getRequest();
 }

@@ -30,7 +30,7 @@ public class ServerRespondent implements IRespondent {
             handler.response(factory.createError(obj));
             return;
         }
-        IServiceSession session = new ServiceSession(factory, container, (IClientMessage)obj, handler);
+        ISession session = new ServiceSession(factory, container, (IClientMessage)obj, handler);
         executor.blockedExecute(session);
     }
 

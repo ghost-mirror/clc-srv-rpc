@@ -26,6 +26,11 @@ public class ServerMessageFactory implements IServerMessageFactory {
     }
 
     @Override
+    public IServerMessage rejectedMessage(int id) {
+        return new ServerMessage(id, id, EServerResult.Rejected);
+    }
+
+    @Override
     public IServerMessage createMessageId(Object obj) {
         int id = (obj instanceof IClientMessage)?((IClientMessage)obj).getId():0;
         return new ServerMessage(id, id, EServerResult.ID);

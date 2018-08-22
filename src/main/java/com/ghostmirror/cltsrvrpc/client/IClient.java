@@ -1,9 +1,11 @@
 package com.ghostmirror.cltsrvrpc.client;
 
+import com.ghostmirror.cltsrvrpc.common.IServerMessage;
+
 import java.net.SocketException;
 
 public interface IClient {
-    String remoteCall(String service, String method, Object[] params) throws SocketException;
-    String remoteCall(String service, String method) throws SocketException;
+    IServerMessage remoteCall(String service, String method, Object[] params) throws SocketException, ClientException;
+    IServerMessage remoteCall(String service, String method) throws SocketException, ClientException;
     void close();
 }

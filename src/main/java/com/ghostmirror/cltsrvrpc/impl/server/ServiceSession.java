@@ -3,7 +3,7 @@ package com.ghostmirror.cltsrvrpc.impl.server;
 import com.ghostmirror.cltsrvrpc.common.IClientMessage;
 import com.ghostmirror.cltsrvrpc.server.*;
 
-public class ServiceSession implements IServiceSession {
+public class ServiceSession implements ISession {
     private final IServerMessageFactory factory;
     private final IServiceContainer     container;
     private final IClientMessage        message;
@@ -16,8 +16,14 @@ public class ServiceSession implements IServiceSession {
         this.handler   = handler;
     }
 
+    @Override
     public void run() {
         IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
         handler.response(factory.createMessage(message.getId(), result));
+    }
+
+    @Override
+    public void rejected() {
+        handler.response(factory.rejectedMessage(message.getId()));
     }
 }

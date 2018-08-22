@@ -1,5 +1,6 @@
 package com.ghostmirror.cltsrvrpc;
 
+import com.ghostmirror.cltsrvrpc.client.ClientException;
 import com.ghostmirror.cltsrvrpc.impl.client.Client;
 import com.ghostmirror.cltsrvrpc.impl.server.ServiceContainer;
 import org.apache.log4j.Logger;
@@ -24,7 +25,7 @@ public class ClientManager {
             e.printStackTrace();
             return;
         }
-        for(int i=0; i<100; i++) {
+        for(int i=0; i<1000; i++) {
             log.info("thread : " + i);
             Thread tr = new Thread(new Caller(client));
             threads.add(tr);
@@ -57,11 +58,17 @@ class Caller implements Runnable {
         while(true) {
             try {
                 Thread.sleep(100);
-                log.info("Sum:" + c.remoteCall("arithmetic", "sum", new Object[]{5, 10}));
+                c.remoteCall("arithmetic", "sum", new Object[]{33, 11});
                 Thread.sleep(100);
-                log.info("Mul:" + c.remoteCall("arithmetic", "mul", new Object[]{5, 10}));
+                c.remoteCall("arithmetic", "mul", new Object[]{5, 10});
                 Thread.sleep(100);
-//                log.info("Sleep:" + c.remoteCall("sleepy", "sleep", new Object[]{1000}));
+                c.remoteCall("sleepy", "sleep", new Object[]{1});
+                Thread.sleep(100);
+                c.remoteCall("stupid",     "nothing");
+                Thread.sleep(100);
+                c.remoteCall("sleepy", "sleep", new Object[]{1});
+            } catch (ClientException e) {
+                log.error(e.getMessage());
             } catch (SocketException e) {
                 log.error("Caller: stoped!");
                 return;

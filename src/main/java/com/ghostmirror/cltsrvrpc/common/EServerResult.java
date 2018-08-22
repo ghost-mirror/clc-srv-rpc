@@ -4,6 +4,7 @@ public enum EServerResult {
     ID,
     RESULT,
     VOID,
+    Rejected,
     WrongService,
     WrongMethod,
     WrongParametrs,
