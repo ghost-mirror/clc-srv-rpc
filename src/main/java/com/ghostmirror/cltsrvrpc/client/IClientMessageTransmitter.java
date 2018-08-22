@@ -8,5 +8,5 @@ import java.net.SocketException;
 public interface IClientMessageTransmitter {
     void close();
     int writeMessage (IClientMessage obj) throws SocketException;
-    IServerMessage readMessage (int sessionId);
+    IServerMessage readMessage (int sessionId) throws SocketException;
 }

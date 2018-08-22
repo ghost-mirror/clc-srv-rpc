@@ -48,6 +48,11 @@ public class Client implements IClient {
         log.debug("Accepted : " + id);
 
         IServerMessage obj = transmitter.readMessage(sessionId);
+        if(obj == null) {
+//            transmitter.close();
+            log.error("obj == null");
+            throw new SocketException("obj == null");
+        }
         if(obj.getId() != sessionId || obj.getRequest().getId() != sessionId) {
             ClientException.raise("Response ID("+obj.getId()+"/"+obj.getRequest().getId()+") != Session ID("+sessionId+") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }

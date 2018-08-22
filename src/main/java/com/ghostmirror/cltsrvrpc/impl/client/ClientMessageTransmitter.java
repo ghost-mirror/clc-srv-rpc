@@ -32,11 +32,16 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
     @Override
     public void run() {
         while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
-            readData();
+            try {
+                readData();
+            } catch (SocketException e) {
+                return;
+            }
         }
     }
 
     public void close() {
+        monitor.notifyAll();
         try {
             objectInput.close();
             if(!socket.isClosed()) {
@@ -45,7 +50,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
             }
         } catch (IOException e) {
             log.error("Close socked error!");
-            e.printStackTrace();
+//            e.printStackTrace();
             return;
         }
         log.info("Socked closed!");
@@ -66,6 +71,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     return 0;
                 }
                 return message.getId();
+            } catch (SocketException e) {
+                close();
+                throw e;
             } catch (IOException e) {
                 close();
                 return 0;
@@ -73,7 +81,10 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         }
     }
 
-    public IServerMessage readMessage (int sessionId) {
+    public IServerMessage readMessage (int sessionId) throws SocketException  {
+        if(socket.isClosed()) {
+            throw new SocketException("Socket is closed");
+        }
         synchronized (monitor) {
             while (!isReadyObjectId(sessionId)) {
                 if(socket.isClosed()) {
@@ -84,7 +95,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     monitor.wait();
                     log.debug("client free object");
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
         }
@@ -129,7 +140,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         }
     }
 
-    private void readData() {
+    private void readData() throws SocketException {
         synchronized (monitor) {
             Object object;
             try {
@@ -139,8 +150,13 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     log.debug("new object : null");
                     return;
                 }
+            } catch (SocketException e) {
+                log.error("SocketException");
+                close();
+                throw e;
             } catch (IOException e) {
                 log.error("IOException");
+                close();
                 return;
             } catch (ClassNotFoundException e) {
                 log.error("ClassNotFoundException");

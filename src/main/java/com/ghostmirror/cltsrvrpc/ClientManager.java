@@ -2,7 +2,6 @@ package com.ghostmirror.cltsrvrpc;
 
 import com.ghostmirror.cltsrvrpc.client.ClientException;
 import com.ghostmirror.cltsrvrpc.impl.client.Client;
-import com.ghostmirror.cltsrvrpc.impl.server.ServiceContainer;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -14,10 +13,8 @@ public class ClientManager {
 //    private static final Logger log = Logger.getLogger(ClientManager.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
     public static void main(String args[]) {
-        BufferedReader br;
         Client client;
         List<Thread> threads = new ArrayList<Thread>();
-//        br = new BufferedReader(new InputStreamReader(System.in));
 
         try {
             client = new Client("localhost", 2323);
@@ -25,7 +22,7 @@ public class ClientManager {
             log.error("Connection Error.");
             e.printStackTrace();
             return;
-    }
+        }
         for(int i=0; i<1000; i++) {
             log.info("thread : " + i);
             Thread tr = new Thread(new Caller(client));
@@ -38,13 +35,6 @@ public class ClientManager {
             } catch (InterruptedException e) {
             }
         }
-
-/*
-        try {
-            String s = br.readLine();
-        } catch (IOException e) {
-        }
-*/
     }
 }
 
