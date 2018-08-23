@@ -6,93 +6,93 @@ import org.apache.log4j.Logger;
 
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ServiceSessionPool extends AThreadPool implements IEexecutor {
 //    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Server");
     private Runnable command;
+    private final Lock commandLock = new ReentrantLock();
+    private final Condition setCommand  = commandLock.newCondition();
+    private final Condition runCommand  = commandLock.newCondition();
 
     public ServiceSessionPool (int queueSize, int poolSize) {
         super(queueSize, poolSize, new ServiceSessionRejected());
         command = null;
-
     }
+
     @Override
     public void run() {
-        synchronized (this) {
-            while(!pool.isShutdown()) {
-                while (command == null) {
-                    try {
-                        log.debug("wait fo comand...");
-                        this.wait();
-                    } catch (InterruptedException e) {
+        while(!pool.isShutdown()) {
+            commandLock.lock();
+            try {
+                while(command == null) {
+                    log.debug("waiting for command...");
+                    runCommand.await();
+                }
+                pool.execute(command);
+                log.debug("execute command..." + queue.size());
+                command = null;
+                setCommand.signal();
+            } catch (InterruptedException e) {
 
-                    }
-                }
-                if(command != null) {
-                    log.debug("execute...");
-                    pool.execute(command);
-                    command = null;
-                    log.debug("notify...");
-                    this.notifyAll();
-                }
+            } finally {
+                commandLock.unlock();
             }
         }
     }
 
     @Override
     public void execute(ISession session) {
-        while(true) {
-            synchronized (this) {
-                while (command != null) {
-                    try {
-                        this.wait();
-                    } catch (InterruptedException e) {
-
-                    }
-                }
+        commandLock.lock();
+        log.debug("new command");
+        try {
+            while(command != null) {
+                setCommand.await();
             }
+            this.command = session;
+            log.debug("command can run");
+            runCommand.signal();
+        } catch (InterruptedException e) {
 
-            synchronized (this) {
-                if(command == null) {
-                    command = session;
-                    this.notifyAll();
-                    return;
-                }
-            }
+        } finally {
+            commandLock.unlock();
         }
     }
 
     @Override
     public void blockedExecute(ISession session) {
-        while(true) {
-            synchronized (this) {
-                log.debug("new command");
-                while (command != null) {
-                    try {
-                        log.debug("command wait...");
-                        this.wait();
-                    } catch (InterruptedException e) {
-
-                    }
-                }
+        commandLock.lock();
+        log.debug("new command");
+        try {
+            while(!canExecuteWithoutReject()) {
+                log.debug("!canExecuteWithoutReject " + queue.size());
+                setCommand.await();
             }
+            this.command = session;
+            log.debug("command can run");
+            runCommand.signal();
+        } catch (InterruptedException e) {
 
-            synchronized (this) {
-                log.debug("command can exec");
-                if(command == null && canExecute()) {
-                    command = session;
-                    log.debug("command notify");
-                    this.notifyAll();
-                    return;
-                }
-            }
+        } finally {
+            commandLock.unlock();
         }
     }
 
-    private boolean canExecute() {
-        return queue.size() <  queue.getMaxCapacity();
-//        return pool.getMaximumPoolSize() >  pool.getActiveCount();
+    private boolean canExecuteWithoutReject() {
+        return (command == null) && (queue.size() <  queue.getMaxCapacity());
+    }
+
+    @Override
+    protected void afterExecution(Runnable r, Throwable t) {
+        commandLock.lock();
+        try {
+            setCommand.signal();
+        } finally {
+            commandLock.unlock();
+        }
     }
 }
 

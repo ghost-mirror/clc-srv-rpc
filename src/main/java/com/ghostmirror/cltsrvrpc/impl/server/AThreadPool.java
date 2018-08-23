@@ -3,10 +3,7 @@ package com.ghostmirror.cltsrvrpc.impl.server;
 import com.ghostmirror.cltsrvrpc.server.IThreadPool;
 import com.ghostmirror.cltsrvrpc.util.CapacityQueue;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public abstract class AThreadPool implements IThreadPool {
     protected final ThreadPoolExecutor pool;
@@ -14,8 +11,8 @@ public abstract class AThreadPool implements IThreadPool {
 
     public AThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
         queue = new CapacityQueue(queueSize);
-        pool  = new ThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
-                Executors.defaultThreadFactory(), handler);
+        pool  = new CustomThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
+                Executors.defaultThreadFactory(), handler, this);
     }
 
     @Override
@@ -61,6 +58,29 @@ public abstract class AThreadPool implements IThreadPool {
     @Override
     public boolean isTerminated() {
         return pool.isTerminated();
+    }
+
+
+    abstract protected void afterExecution(Runnable r, Throwable t);
+
+        private class CustomThreadPoolExecutor extends ThreadPoolExecutor {
+        private final AThreadPool aThreadPool;
+
+        public CustomThreadPoolExecutor(int corePoolSize,
+                                  int maximumPoolSize,
+                                  long keepAliveTime,
+                                  TimeUnit unit,
+                                  BlockingQueue<Runnable> workQueue,
+                                  ThreadFactory threadFactory,
+                                  RejectedExecutionHandler handler, AThreadPool aThreadPool) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+            this.aThreadPool = aThreadPool;
+        }
+
+        protected void afterExecute(Runnable r, Throwable t) {
+            super.afterExecute(r, t);
+            aThreadPool.afterExecution(r, t);
+        }
     }
 }
 

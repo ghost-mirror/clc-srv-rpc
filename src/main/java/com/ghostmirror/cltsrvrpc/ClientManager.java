@@ -20,7 +20,6 @@ public class ClientManager {
             client = new Client("localhost", 2323);
         } catch (IOException e) {
             log.error("Connection Error.");
-            e.printStackTrace();
             return;
         }
         for(int i=0; i<1000; i++) {
@@ -33,6 +32,7 @@ public class ClientManager {
             try {
                 tr.join();
             } catch (InterruptedException e) {
+                tr.interrupt();
             }
         }
     }
@@ -56,7 +56,7 @@ class Caller implements Runnable {
             } catch (ClientException e) {
 //                log.error(e.getMessage());
             } catch (SocketException e) {
-                log.error("Caller: stoped!");
+                log.error("Caller: stopped!");
                 return;
 //            } catch (InterruptedException e) {
 //                log.error("Caller: InterruptedException!");

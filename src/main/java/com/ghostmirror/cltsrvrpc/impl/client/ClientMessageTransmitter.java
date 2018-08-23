@@ -7,6 +7,7 @@ import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -150,6 +151,12 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     log.debug("new object : null");
                     return;
                 }
+            } catch (InvalidClassException e) {
+                log.error("ClassNotFoundException");
+                return;
+            } catch (ClassNotFoundException e) {
+                log.error("ClassNotFoundException");
+                return;
             } catch (SocketException e) {
                 log.error("SocketException");
                 close();
@@ -158,12 +165,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                 log.error("IOException");
                 close();
                 return;
-            } catch (ClassNotFoundException e) {
-                log.error("ClassNotFoundException");
-                return;
             }
             if(!(object instanceof IServerMessage)){
-                log.error("new object : null");
+                log.error("object not instanceof IServerMessage");
                 return;
             }
             IServerMessage message = (IServerMessage)object;

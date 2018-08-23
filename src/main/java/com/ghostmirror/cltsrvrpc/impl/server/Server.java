@@ -72,6 +72,11 @@ public class Server extends AThreadPool {
         } catch (IOException e) {
         }
     }
+
+    @Override
+    protected void afterExecution(Runnable r, Throwable t) {
+
+    }
 }
 
 
