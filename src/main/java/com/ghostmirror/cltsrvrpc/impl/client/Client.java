@@ -33,7 +33,7 @@ public class Client implements IClient {
     }
 
     public IServerMessage remoteCall(String service, String method) throws ClientException, SocketException {
-        return  remoteCall(service, method, new Object[]{});
+        return  remoteCall(service, method, new Object[0]);
     }
 
     public IServerMessage remoteCall(String service, String method, Object[] params) throws ClientException, SocketException {

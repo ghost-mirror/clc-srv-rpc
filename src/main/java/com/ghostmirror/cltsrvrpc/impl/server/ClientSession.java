@@ -80,17 +80,15 @@ class ClientSession implements Runnable {
         return object;
     }
 
-    private void writeObject (Object obj)  {
-        synchronized(this) {
-            try {
-                objectOutput.writeObject(obj);
-                objectOutput.flush();
-                log.debug("result writed");
-            } catch (SocketException e) {
-                close();
-            } catch (IOException e) {
-                close();
-            }
+    private synchronized void writeObject (Object obj)  {
+        try {
+            objectOutput.writeObject(obj);
+            objectOutput.flush();
+            log.debug("result writed");
+        } catch (SocketException e) {
+            close();
+        } catch (IOException e) {
+            close();
         }
     }
 

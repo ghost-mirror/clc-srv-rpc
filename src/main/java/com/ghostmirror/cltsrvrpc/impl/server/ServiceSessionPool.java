@@ -20,7 +20,6 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
 
     public ServiceSessionPool (int queueSize, int poolSize) {
         super(queueSize, poolSize, new ServiceSessionRejected());
-        command = null;
     }
 
     @Override
@@ -56,7 +55,7 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
             log.debug("command can run");
             runCommand.signal();
         } catch (InterruptedException e) {
-
+//            Thread.currentThread().interrupt();
         } finally {
             commandLock.unlock();
         }
@@ -83,6 +82,7 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
 
     private boolean canExecuteWithoutReject() {
         return (command == null) && (queue.size() <  queue.getMaxCapacity());
+//        return (command == null);  Test for Rejected
     }
 
     @Override

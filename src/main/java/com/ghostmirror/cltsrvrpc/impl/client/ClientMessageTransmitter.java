@@ -57,28 +57,26 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         log.info("Socked closed!");
     }
 
-    public int writeMessage (IClientMessage obj) throws SocketException {
-        synchronized (this) {
-            if(socket.isClosed()) {
-                throw new SocketException("Socket is closed");
-            }
-            try {
-                log.debug("Request : " + obj.getId());
-                objectOutput.writeObject(obj);
-                objectOutput.flush();
-                log.debug("Request send");
-                IServerMessage message = readId();
-                if(message == null){
-                    return 0;
-                }
-                return message.getId();
-            } catch (SocketException e) {
-                close();
-                throw e;
-            } catch (IOException e) {
-                close();
+    public synchronized int writeMessage (IClientMessage obj) throws SocketException {
+        if(socket.isClosed()) {
+            throw new SocketException("Socket is closed");
+        }
+        try {
+            log.debug("Request : " + obj.getId());
+            objectOutput.writeObject(obj);
+            objectOutput.flush();
+            log.debug("Request send");
+            IServerMessage message = readId();
+            if(message == null){
                 return 0;
             }
+            return message.getId();
+        } catch (SocketException e) {
+            close();
+            throw e;
+        } catch (IOException e) {
+            close();
+            return 0;
         }
     }
 
@@ -89,7 +87,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         synchronized (monitor) {
             while (!isReadyObjectId(sessionId)) {
                 if(socket.isClosed()) {
-                    return null;
+                    throw new SocketException("Socket is closed");
                 }
                 try {
                     log.debug("client waiting object...");

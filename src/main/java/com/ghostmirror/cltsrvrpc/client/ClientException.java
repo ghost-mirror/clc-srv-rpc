@@ -3,15 +3,8 @@ package com.ghostmirror.cltsrvrpc.client;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 
 public class ClientException extends Exception {
-    private final String message;
-
     private ClientException(String message) {
-        this.message = message;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
+        super(message);
     }
 
     public static void raise(String message) throws ClientException {
@@ -19,21 +12,21 @@ public class ClientException extends Exception {
     }
 
     public static void raiseOnError(IServerMessage result) throws ClientException {
-        String msg = "ERROR! Message ID: " + result.getId()     + " Type: ";
+        String msg = "ERROR! Message ID: " + result.getId();
         switch(result.getType()) {
             case ID:         return;
             case RESULT:     return;
             case VOID:       return;
-            case Rejected:         msg += "Rejected"; break;
-            case WrongService:     msg += "Wrong Service"; break;
-            case WrongMethod:      msg += "Wrong Method"; break;
-            case WrongParametrs:   msg += "Wrong Parametrs"; break;
-            case InnerError:       msg += "Inner Error"; break;
-            case WrongObjectNull:  msg += "Object, is Null"; break;
-            case WrongRequest:     msg += "Wrong Request"; break;
-            case WrongClass:       msg += "Wrong Class"; break;
-            case WrongObject:      msg += "Wrong Object"; break;
-            default:               msg += "Undefined Errror";
+            case Rejected:         msg += " Type: Rejected"; break;
+            case WrongService:     msg += " Type: Wrong Service"; break;
+            case WrongMethod:      msg += " Type: Wrong Method"; break;
+            case WrongParametrs:   msg += " Type: Wrong Parametrs"; break;
+            case InnerError:       msg += " Type: Inner Error"; break;
+            case WrongObjectNull:  msg += " Type: Object, is Null"; break;
+            case WrongRequest:     msg += " Type: Wrong Request"; break;
+            case WrongClass:       msg += " Type: Wrong Class"; break;
+            case WrongObject:      msg += " Type: Wrong Object"; break;
+            default:               msg += " Type: Undefined Errror";
         }
         raise(msg);
     }
