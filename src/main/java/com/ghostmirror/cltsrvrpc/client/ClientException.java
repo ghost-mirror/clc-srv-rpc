@@ -13,7 +13,7 @@ public class ClientException extends Exception {
         throw new ClientException(message);
     }
 
-    public static void raiseOnError(IServerMessage result) throws ClientException {
+    public static synchronized void raiseOnError(IServerMessage result) throws ClientException {
         switch(result.getType()) {
             case ID:         return;
             case RESULT:     return;
