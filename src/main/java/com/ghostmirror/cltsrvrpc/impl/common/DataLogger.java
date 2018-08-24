@@ -4,49 +4,77 @@ import com.ghostmirror.cltsrvrpc.common.IClientMessage;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 
 public class DataLogger {
-    public static String client_request (IClientMessage message) {
-        return log_message("request", message);
+    private static StringBuilder sb = new StringBuilder();
+
+    public static synchronized String client_request (IClientMessage message) {
+        sb.delete(0, sb.length());
+        sb.append("request");
+        log_message(message);
+        return sb.toString();
     }
 
-    public static String server_message (IServerMessage obj) {
+    public static synchronized String server_message (IServerMessage obj) {
         return server_response(obj);
     }
 
-    public static String server_response (IServerMessage obj) {
-        String msg;
-
+    public static synchronized String server_response (IServerMessage obj) {
+        sb.delete(0, sb.length());
         switch(obj.getType()) {
-            case ID:       return log_message("accepted", obj.getRequest());
-            case RESULT:   return log_message("response", obj.getRequest()) + ".result(" + obj.getObject().getClass().getSimpleName() + ":" + obj.getObject().toString() + ")";
-            case VOID:     return log_message("response", obj.getRequest()) + ".result(void)";
-            case Rejected:         msg = "Rejected"; break;
-            case WrongService:     msg = "Wrong Service"; break;
-            case WrongMethod:      msg = "Wrong Method"; break;
-            case WrongParametrs:   msg = "Wrong Parameters"; break;
-            case InnerError:       msg = "Inner Error"; break;
-            case WrongObjectNull:  msg = "Object, is Null"; break;
-            case WrongRequest:     msg = "Wrong Request"; break;
-            case WrongClass:       msg = "Wrong Class"; break;
-            case WrongObject:      msg = "Wrong Object"; break;
-            default:               msg = "Undefined Error";
+            case ID:       sb.append("accepted"); log_message(obj.getRequest());
+                return sb.toString();
+            case RESULT:   sb.append("response"); log_message(obj.getRequest()); sb.append(".result(").append(obj.getObject().getClass().getSimpleName()).append(":").append(obj.getObject().toString()).append(")");
+                return sb.toString();
+            case VOID:     sb.append("response"); log_message(obj.getRequest()); sb.append(".result(void)");
+                return sb.toString();
+            case Rejected:         sb.append("Rejected ")        .append(obj.getObject()); break;
+            case WrongService:     sb.append("Wrong Service ")   .append(obj.getObject()); break;
+            case WrongMethod:      sb.append("Wrong Method ")    .append(obj.getObject()); break;
+            case WrongParametrs:   sb.append("Wrong Parameters ").append(obj.getObject()); break;
+            case InnerError:       sb.append("Inner Error ")     .append(obj.getObject()); break;
+            case WrongObjectNull:  sb.append("Object, is Null ") .append(obj.getObject()); break;
+            case WrongRequest:     sb.append("Wrong Request ")   .append(obj.getObject()); break;
+            case WrongClass:       sb.append("Wrong Class ")     .append(obj.getObject()); break;
+            case WrongObject:      sb.append("Wrong Object ")    .append(obj.getObject()); break;
+            case RuntimeErrror:    sb.append("Runtime Errror: ") .append(obj.getObject()); break;
+            default:               sb.append("Undefined Error");
         }
-        return log_message(msg, obj.getRequest());
+        log_message(obj.getRequest());
+        return sb.toString();
     }
 
-    private static String log_message (String type, IClientMessage message) {
-        String par;
+    private static void log_message (IClientMessage message) {
+        if(message == null) {
+            sb.append("(message == null)");
+            return;
+        }
         Object[] params = message.getParams();
+        sb.append("(").append(message.getId()).
+                append("): service(").append(message.getService()).
+                append(").method(").append(message.getMethod()).
+                append(").params(");
+
+        if(params == null) {
+            sb.append("null").append(")");
+            return;
+        }
         if(params.length == 0) {
-            par = "void";
+            sb.append("void");
         } else {
             Object o = params[0];
-            par = o.getClass().getSimpleName() + ":" + o.toString();
+            if(o != null) {
+                sb.append(o.getClass().getSimpleName()).append(":").append(o.toString());
+            } else {
+                sb.append("null");
+            }
             for (int i=1; i<params.length; i++) {
                 o = params[i];
-                par +=  "," + o.getClass().getSimpleName() + ":" + o.toString();
+                if(o != null) {
+                    sb.append(",").append(o.getClass().getSimpleName()).append(":").append(o.toString());
+                } else {
+                    sb.append(", null");
+                }
             }
         }
-        return  type + "(" + message.getId() + "): service(" + message.getService() + ").method(" + message.getMethod() + ").params(" + par + ")";
+        sb.append(")");
     }
-
 }

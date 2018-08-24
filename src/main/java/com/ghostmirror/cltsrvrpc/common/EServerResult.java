@@ -12,5 +12,6 @@ public enum EServerResult {
     WrongObjectNull,
     WrongRequest,
     WrongClass,
-    WrongObject
+    WrongObject,
+    RuntimeErrror
 }

@@ -22,7 +22,7 @@ public class ClientManager {
             log.error("Connection Error.");
             return;
         }
-        for(int i=0; i<1000; i++) {
+        for(int i=0; i<1; i++) {
             log.info("thread : " + i);
             Thread tr = new Thread(new Caller(client));
             threads.add(tr);
@@ -48,8 +48,9 @@ class Caller implements Runnable {
         log.info("Caller: run ...");
         while(true) {
             try {
-                c.remoteCall("arithmetic", "sum", new Object[]{33, 11});
+                c.remoteCall("arithmetic", null, new Object[]{33, 11});
                 c.remoteCall("arithmetic", "mul", new Object[]{5, 10});
+                c.remoteCall("arithmetic", "div", new Object[]{5, null});
                 c.remoteCall("sleepy", "sleep", new Object[]{1});
                 c.remoteCall("stupid",     "nothing");
                 c.remoteCall("sleepy", "currentDate");

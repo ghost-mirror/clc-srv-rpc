@@ -97,7 +97,8 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
 }
 
 class ServiceSessionRejected implements RejectedExecutionHandler {
-    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
+//    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger("Server");
 
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {

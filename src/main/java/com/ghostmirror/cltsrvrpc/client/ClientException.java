@@ -17,15 +17,16 @@ public class ClientException extends Exception {
             case ID:         return;
             case RESULT:     return;
             case VOID:       return;
-            case Rejected:         msg += " Type: Rejected"; break;
-            case WrongService:     msg += " Type: Wrong Service"; break;
-            case WrongMethod:      msg += " Type: Wrong Method"; break;
-            case WrongParametrs:   msg += " Type: Wrong Parametrs"; break;
-            case InnerError:       msg += " Type: Inner Error"; break;
-            case WrongObjectNull:  msg += " Type: Object, is Null"; break;
-            case WrongRequest:     msg += " Type: Wrong Request"; break;
-            case WrongClass:       msg += " Type: Wrong Class"; break;
-            case WrongObject:      msg += " Type: Wrong Object"; break;
+            case Rejected:         msg += " Type: Rejected" + result.getObject(); break;
+            case WrongService:     msg += " Type: Wrong Service" + result.getObject(); break;
+            case WrongMethod:      msg += " Type: Wrong Method" + result.getObject(); break;
+            case WrongParametrs:   msg += " Type: Wrong Parametrs" + result.getObject(); break;
+            case InnerError:       msg += " Type: Inner Error" + result.getObject(); break;
+            case WrongObjectNull:  msg += " Type: Object, is Null" + result.getObject(); break;
+            case WrongRequest:     msg += " Type: Wrong Request" + result.getObject(); break;
+            case WrongClass:       msg += " Type: Wrong Class" + result.getObject(); break;
+            case WrongObject:      msg += " Type: Wrong Object" + result.getObject(); break;
+            case RuntimeErrror:    msg += " Type: Runtime Errror" + result.getObject(); break;
             default:               msg += " Type: Undefined Errror";
         }
         raise(msg);

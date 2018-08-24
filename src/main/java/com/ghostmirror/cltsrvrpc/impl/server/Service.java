@@ -17,11 +17,20 @@ public class Service implements IService {
     @Override
     public IServiceResult invoke(String method, Object[] params) {
         Class cls = impl.getClass();
-        Class[] paramTypes = new Class[params.length];
+        int plen = (params == null)?0:params.length;
+        Class[] paramTypes = new Class[plen];
         Method m;
 
-        for (int i = 0; i < params.length; i++) {
-            paramTypes[i] = params[i].getClass();
+        if(method == null) {
+            return new ServiceResult(EServiceResult.WrongMethod);
+        }
+
+        for (int i = 0; i < plen; i++) {
+            if(params[i] == null) {
+                paramTypes[i] = null;
+            } else {
+                paramTypes[i] = params[i].getClass();
+            }
         }
 
         try {

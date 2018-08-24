@@ -48,11 +48,11 @@ public class ServerMessageFactory implements IServerMessageFactory {
         IServerMessage message;
         if(obj instanceof IClientMessage) {
             int id = ((IClientMessage)obj).getId();
-            message = new ServerMessage(id, id, EServerResult.ID, (IClientMessage)obj);
+            message = new ServerMessage(id, "", EServerResult.ID, (IClientMessage)obj);
             log.info(DataLogger.server_message(message));
             return message;
         } else {
-            message = new ServerMessage(0, 0, EServerResult.ID, null);
+            message = new ServerMessage(0, "", EServerResult.ID, null);
             log.error(DataLogger.server_message(message));
             return message;
         }
@@ -60,13 +60,21 @@ public class ServerMessageFactory implements IServerMessageFactory {
 
     @Override
     public IServerMessage createMessageException(Exception e) {
+        return createMessageException(e, null);
+    }
+
+    @Override
+    public IServerMessage createMessageException(Exception e, IClientMessage msg) {
         IServerMessage message;
+        int id = (msg == null)?0:msg.getId();
         if (e instanceof IOException) {
-            message = new ServerMessage(0, e, EServerResult.WrongRequest, null);
+            message = new ServerMessage(id, e.toString(), EServerResult.WrongRequest, msg);
         } else if (e instanceof ClassNotFoundException) {
-            message = new ServerMessage(0, e, EServerResult.WrongClass, null);
+            message = new ServerMessage(id, e.toString(), EServerResult.WrongClass, msg);
+        } else if (e instanceof RuntimeException) {
+            message = new ServerMessage(id, e.toString(), EServerResult.RuntimeErrror, msg);
         } else {
-            message = new ServerMessage(0, e, EServerResult.WrongRequest, null);
+            message = new ServerMessage(id, e.toString(), EServerResult.WrongRequest, msg);
         }
         log.error(DataLogger.server_message(message));
         return message;
@@ -76,9 +84,9 @@ public class ServerMessageFactory implements IServerMessageFactory {
     public IServerMessage createError(Object obj) {
         IServerMessage message;
         if(obj == null) {
-            message = new ServerMessage(0, null, EServerResult.WrongObjectNull, null);
+            message = new ServerMessage(0, "", EServerResult.WrongObjectNull, null);
         } else {
-            message = new ServerMessage(0, null, EServerResult.WrongObject, null);
+            message = new ServerMessage(0, obj, EServerResult.WrongObject, null);
         }
         log.error(DataLogger.server_response(message));
         return message;
