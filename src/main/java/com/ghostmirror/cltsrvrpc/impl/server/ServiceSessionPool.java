@@ -17,30 +17,62 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
     private final Lock commandLock = new ReentrantLock();
     private final Condition setCommand  = commandLock.newCondition();
     private final Condition runCommand  = commandLock.newCondition();
+    private int WorkCounter = 0;
 
     public ServiceSessionPool (int queueSize, int poolSize) {
         super(queueSize, poolSize, new ServiceSessionRejected());
     }
 
     @Override
+    public void shutdown() {
+        getPool().shutdownNow();
+        System.out.println("ServiceSessionPool shutdown...");
+        System.out.println("getPool().getActiveCount() = " + getPool().getActiveCount());
+        commandLock.lock();
+        try {
+            runCommand.signal();
+        } finally {
+            commandLock.unlock();
+        }
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return getPool().isShutdown();
+    }
+
+    @Override
+    public boolean isStopped() {
+        return isShutdown() && getPool().getActiveCount() == 0;
+    }
+
+    @Override
     public void run() {
-        while(!pool.isShutdown()) {
+        while(!isShutdown()  && !Thread.currentThread().isInterrupted()) {
             commandLock.lock();
             try {
                 while(command == null) {
                     log.debug("waiting for command...");
                     runCommand.await();
+                    if(isShutdown()) {
+                        break;
+                    }
                 }
-                pool.execute(command);
-                log.debug("execute command..." + queue.size());
+                if(isShutdown()) {
+                    break;
+                }
+                execute(command);
+                log.debug("execute command..." + getQueue().size());
                 command = null;
                 setCommand.signal();
             } catch (InterruptedException e) {
-
+                Thread.currentThread().interrupt();
+                System.out.println("ServiceSessionPool InterruptedException!");
             } finally {
                 commandLock.unlock();
             }
         }
+        System.out.println("ServiceSessionPool closed!");
     }
 
     @Override
@@ -55,7 +87,7 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
             log.debug("command can run");
             runCommand.signal();
         } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt();
         } finally {
             commandLock.unlock();
         }
@@ -67,21 +99,21 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
         log.debug("new command");
         try {
             while(!canExecuteWithoutReject()) {
-                log.debug("!canExecuteWithoutReject " + queue.size());
+                log.debug("!canExecuteWithoutReject " + getQueue().size());
                 setCommand.await();
             }
             this.command = session;
             log.debug("command can run");
             runCommand.signal();
         } catch (InterruptedException e) {
-
+            Thread.currentThread().interrupt();
         } finally {
             commandLock.unlock();
         }
     }
 
     private boolean canExecuteWithoutReject() {
-        return (command == null) && (queue.size() <  queue.getMaxCapacity());
+        return (command == null) && (getQueue().size() <  getQueue().getMaxCapacity());
 //        return (command == null);  Test for Rejected
     }
 

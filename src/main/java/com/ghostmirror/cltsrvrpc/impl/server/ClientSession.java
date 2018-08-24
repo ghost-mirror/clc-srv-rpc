@@ -5,6 +5,7 @@ import com.ghostmirror.cltsrvrpc.server.ISessionContext;
 
 import org.apache.log4j.Logger;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,6 +21,8 @@ class ClientSession implements Runnable {
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;
     private final IResponseHandler handler = new ResponseHandler();
+    private volatile int WorkCounter = 0;
+    private final Object monitor = new Object();
 
     public ClientSession(Socket socket, ISessionContext context) throws IOException {
         this.socket  = socket;
@@ -33,6 +36,10 @@ class ClientSession implements Runnable {
         }
     }
 
+ //   public synchronized boolean isStopped() {
+ //       return WorkCounter == 0;
+ //   }
+
     @Override
     public void run() {
         if (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
@@ -40,37 +47,73 @@ class ClientSession implements Runnable {
         }
         while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
             Object object;
+
             try {
                 object = readObject();
-                writeObject(context.requestId(object));
+                if(socket.isClosed() || Thread.currentThread().isInterrupted()) {
+                    break;
+                }
+                writeObject0(context.requestId(object));
             } catch (SocketException e) {
+                close();
+                return;
+            } catch (EOFException e) {
                 close();
                 return;
             } catch (IOException e) {
                 log.error("IOException!");
+                e.printStackTrace();
                 close();
                 return;
             } catch (ClassNotFoundException e) {
                 log.error("ClassNotFoundException!");
-                writeObject(context.requestException(e));
+                writeObject0(context.requestException(e));
+                e.printStackTrace();
                 continue;
             }
+            incWorkCounter();
             context.request(object, handler);
         }
-        log.debug("Client socket closed run!");
+
+
+        System.out.println("Client session is interrupted");
+        synchronized (monitor) {
+            while (WorkCounter != 0) {
+                try {
+                    monitor.wait();
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+        close();
+        System.out.println("Client stopped!");
+        log.info("Client stopped!");
     }
 
     public void close() {
         try {
             objectInput.close();
             if(!socket.isClosed()) {
-                objectOutput.close();
                 socket.close();
+                objectOutput.close();
             }
         } catch (IOException e) {
             log.error("IOException: Client socket closed!");
         }
         log.info("Client socket closed!");
+    }
+
+    private  void incWorkCounter() {
+        synchronized (monitor) {
+            WorkCounter++;
+        }
+    }
+
+    private void decWorkCounter() {
+        synchronized (monitor) {
+            WorkCounter--;
+            monitor.notify();
+        }
     }
 
     private Object readObject () throws IOException, ClassNotFoundException {
@@ -80,7 +123,15 @@ class ClientSession implements Runnable {
         return object;
     }
 
-    private synchronized void writeObject (Object obj)  {
+    private void writeObject (Object obj)  {
+        try {
+            writeObject0(obj);
+        } finally {
+            decWorkCounter();
+        }
+    }
+
+    private synchronized void writeObject0 (Object obj)  {
         try {
             objectOutput.writeObject(obj);
             objectOutput.flush();

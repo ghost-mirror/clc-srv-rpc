@@ -4,7 +4,6 @@ import com.ghostmirror.cltsrvrpc.client.ClientException;
 import com.ghostmirror.cltsrvrpc.client.ClientStopped;
 import com.ghostmirror.cltsrvrpc.client.IClient;
 import com.ghostmirror.cltsrvrpc.client.IClientMessageFactory;
-import com.ghostmirror.cltsrvrpc.common.EServerResult;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 import com.ghostmirror.cltsrvrpc.impl.common.DataLogger;
 import org.apache.log4j.Logger;

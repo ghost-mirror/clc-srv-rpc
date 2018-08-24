@@ -32,7 +32,7 @@ public class ClientManager {
 
 //  Shutdown test
         try {
-            Thread.sleep(5000);
+            Thread.sleep(300000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {

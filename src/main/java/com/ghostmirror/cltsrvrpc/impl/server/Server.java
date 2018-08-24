@@ -12,10 +12,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 
 public class Server extends AThreadPool {
@@ -24,6 +22,9 @@ public class Server extends AThreadPool {
     private final ServerSocket serverSocket;
     private ISessionContext sessionContext;
     private IServerContext  serverContext;
+    private volatile boolean IsShutdown = false;
+    private final Object monitor = new Object();
+
 
     public Server (int port, int queueSize, int poolSize, IServerContext serverContext, ISessionContext sessionContext) throws Exception {
         super(queueSize, poolSize, new ClientSessionRejected());
@@ -34,51 +35,72 @@ public class Server extends AThreadPool {
 
     @Override
     public void run() {
-        log.info("runned....");
-        while(!pool.isShutdown()) {
+        log.info("started....");
+        while(!IsShutdown && !Thread.currentThread().isInterrupted()) {
             Socket socket;
             try {
                 socket = serverSocket.accept();
             } catch (IOException e) {
-                if (serverSocket.isClosed()) {
-                    log.error("Server socket closed");
-                    pool.shutdown();
-                }
+                log.info("Server socket closed");
+                break;
+            }
+            ClientSession session;
+            try {
+                session =  new ClientSession(socket, sessionContext);
+            } catch (IOException e) {
                 continue;
             }
-            try {
-                pool.execute(new ClientSession(socket, sessionContext));
-            } catch (IOException e) {
+            execute(session);
+        }
+
+        synchronized (monitor) {
+            while (getPool().getActiveCount() != 0) {
+                try {
+                    monitor.wait();
+                } catch (InterruptedException e) {
+                }
             }
         }
+        System.out.println("Server Stopped");
+    }
+
+    private void close() {
+       try {
+            if(!serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+       } catch (IOException e) {
+           log.error("Server socket closing IOException");
+       }
     }
 
     @Override
     public void shutdown() {
-        log.info("Shutting down...");
-        super.shutdown();
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-        }
+        log.info("Server shutting down...");
+        close();
+        getPool().shutdownNow();
+        IsShutdown = true;
     }
 
     @Override
-    public void shutdown(int wait) {
-        log.info("Shutting down...");
-        super.shutdown(wait);
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-        }
+    public boolean isShutdown() {
+        return IsShutdown;
+    }
+
+    @Override
+    public boolean isStopped() {
+        return IsShutdown && getPool().getActiveCount() == 0;
     }
 
     @Override
     protected void afterExecution(Runnable r, Throwable t) {
-
+        if(IsShutdown) {
+            synchronized (monitor) {
+                monitor.notify();
+            }
+        }
     }
 }
-
 
 class ClientSessionRejected implements RejectedExecutionHandler {
     private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());

@@ -16,17 +16,13 @@ public class ServerContext implements IServerContext {
     }
 
     @Override
-    public void shutdown(int wait) {
-
-    }
-
-    @Override
     public boolean isShutdown() {
         return pool.isShutdown();
     }
 
     @Override
-    public boolean isTerminated() {
-        return pool.isTerminated();
+    public boolean isStopped() {
+        return false;
     }
+
 }

@@ -36,31 +36,45 @@ public class ServerManager {
             e.printStackTrace();
             return;
         }
-        log.info("Server started");
-        Thread tr = new Thread(server);
-        Thread pl = new Thread(pool);
-        tr.start();
-        pl.start();
 
-        while (!server.isTerminated()) {
+        Thread poolThread = new Thread(pool);
+        Thread serverThread = new Thread(server);
+        poolThread.start();
+        serverThread.start();
+        log.info("Server started");
+
+        while (!server.isShutdown() && !pool.isShutdown()) {
             try {
                 System.out.print("cmd> ");
                 String command = br.readLine();
-                    if(command.equals("abort")) {
-                    server.shutdown(0);
-                    break;
-                }
-                if(command.equals("stop")) {
-                    server.shutdown();
+//                if(command.equals("stop")) {
                     System.out.println("Wait for clients connections closed...");
-                }
+                    break;
+//                }
             } catch (IOException e) {
                 log.error("Readder error");
                 log.error(e);
-                server.shutdown(0);
-                return;
+                break;
             }
         }
+
+        server.shutdown();
+        try {
+            serverThread.join();
+        } catch (InterruptedException e) {
+            serverThread.interrupt();
+        }
+        System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz!");
+
+        pool.shutdown();
+        try {
+            poolThread.join();
+        } catch (InterruptedException e) {
+            poolThread.interrupt();
+        }
+
+        System.out.println("Server stopped!Server stopped!Server stopped!");
+
         log.info("Server stopped!");
     }
 }

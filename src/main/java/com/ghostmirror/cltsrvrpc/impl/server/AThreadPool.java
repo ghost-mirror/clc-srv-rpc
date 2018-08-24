@@ -6,8 +6,16 @@ import com.ghostmirror.cltsrvrpc.util.CapacityQueue;
 import java.util.concurrent.*;
 
 public abstract class AThreadPool implements IThreadPool {
-    protected final ThreadPoolExecutor pool;
-    protected CapacityQueue queue;
+    private final ThreadPoolExecutor pool;
+    private CapacityQueue queue;
+
+    protected CapacityQueue getQueue() {
+        return queue;
+    }
+
+    public ThreadPoolExecutor getPool() {
+        return pool;
+    }
 
     public AThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
         queue = new CapacityQueue(queueSize);
@@ -36,30 +44,9 @@ public abstract class AThreadPool implements IThreadPool {
         pool.setKeepAliveTime(time, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void shutdown() {
-        pool.shutdown();
+    protected void execute(Runnable command) {
+        pool.execute(command);
     }
-
-    @Override
-    public void shutdown(int wait) {
-        pool.shutdown();
-        try {
-            pool.awaitTermination(wait, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-        }
-    }
-
-    @Override
-    public boolean isShutdown() {
-        return pool.isShutdown();
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return pool.isTerminated();
-    }
-
 
     abstract protected void afterExecution(Runnable r, Throwable t);
 

@@ -16,7 +16,7 @@ import java.net.SocketException;
 public class ClientMessageTransmitter implements Runnable, IClientMessageTransmitter {
 //    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
-    private static final Object monitor = new Object();
+    private final Object monitor = new Object();
     private final Socket socket;
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;
@@ -88,6 +88,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
     }
 
     protected void close() {
+        synchronized (monitor) {
+            monitor.notifyAll();
+        }
         try {
             objectInput.close();
             if(!socket.isClosed()) {
