@@ -16,10 +16,11 @@ import java.net.SocketException;
 public class ClientMessageTransmitter implements Runnable, IClientMessageTransmitter {
 //    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
+    private static final Object monitor = new Object();
     private final Socket socket;
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;
-    private static final Object monitor = new Object();
+    private boolean isClosed = false;
     private IServerMessage msg;
     private IServerMessage id;
 
@@ -39,22 +40,6 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                 return;
             }
         }
-    }
-
-    public void close() {
-        monitor.notifyAll();
-        try {
-            objectInput.close();
-            if(!socket.isClosed()) {
-                objectOutput.close();
-                socket.close();
-            }
-        } catch (IOException e) {
-            log.error("Close socked error!");
-//            e.printStackTrace();
-            return;
-        }
-        log.info("Socked closed!");
     }
 
     public synchronized int writeMessage (IClientMessage obj) throws SocketException {
@@ -100,6 +85,23 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         }
 
         return getObject();
+    }
+
+    protected void close() {
+        try {
+            objectInput.close();
+            if(!socket.isClosed()) {
+                objectOutput.close();
+                socket.close();
+            }
+        } catch (IOException e) {
+            log.error("Close socked error!");
+//            e.printStackTrace();
+            return;
+        } finally {
+            isClosed = true;
+        }
+        log.info("Socked closed!");
     }
 
     private IServerMessage readId () {
@@ -156,13 +158,17 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                 log.error("ClassNotFoundException");
                 return;
             } catch (SocketException e) {
-                log.error("SocketException");
-                close();
+                if(!isClosed) {
+                    log.error("SocketException");
+                    close();
+                }
                 throw e;
             } catch (IOException e) {
                 log.error("IOException");
+                SocketException exception = new SocketException();
+                exception.initCause(e.getCause());
                 close();
-                return;
+                throw exception;
             }
             if(!(object instanceof IServerMessage)){
                 log.error("object not instanceof IServerMessage");

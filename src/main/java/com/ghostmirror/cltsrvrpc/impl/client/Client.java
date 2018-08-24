@@ -1,6 +1,7 @@
 package com.ghostmirror.cltsrvrpc.impl.client;
 
 import com.ghostmirror.cltsrvrpc.client.ClientException;
+import com.ghostmirror.cltsrvrpc.client.ClientStopped;
 import com.ghostmirror.cltsrvrpc.client.IClient;
 import com.ghostmirror.cltsrvrpc.client.IClientMessageFactory;
 import com.ghostmirror.cltsrvrpc.common.EServerResult;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class Client implements IClient {
 //    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
@@ -20,6 +20,8 @@ public class Client implements IClient {
     private final Thread tr;
     private final IClientMessageFactory factory = new ClientMessageFactory();
     private AtomicInteger sessionId = new AtomicInteger(0);
+    private int WorkCounter = 0;
+    private volatile boolean Shutdown = false;
 
     public Client(String host, int port) throws IOException {
         transmitter = new ClientMessageTransmitter(host, port);
@@ -28,15 +30,52 @@ public class Client implements IClient {
         log.info("Client connected to socket.");
     }
 
-    public void close() {
-        transmitter.close();
+    @Override
+    public void shutdown() {
+        Shutdown = true;
     }
 
-    public IServerMessage remoteCall(String service, String method) throws ClientException, SocketException {
+    @Override
+    public boolean isShutdown() {
+        return Shutdown;
+    }
+
+    @Override
+    public synchronized boolean isStopped() {
+        return WorkCounter == 0 && Shutdown;
+    }
+
+    @Override
+    public IServerMessage remoteCall(String service, String method) throws ClientException, SocketException, ClientStopped {
         return  remoteCall(service, method, new Object[0]);
     }
 
-    public IServerMessage remoteCall(String service, String method, Object[] params) throws ClientException, SocketException {
+    @Override
+    public IServerMessage remoteCall(String service, String method, Object[] params) throws ClientException, SocketException, ClientStopped {
+        if(Shutdown) {
+           throw new ClientStopped();
+        }
+        try {
+            incWorkCounter();
+            return remoteCall0(service, method, params);
+        } finally {
+            decWorkCounter();
+            if(isStopped()) {
+                tr.interrupt();
+                transmitter.close();
+            }
+        }
+    }
+
+    private synchronized void incWorkCounter() {
+        WorkCounter++;
+    }
+
+    private synchronized void decWorkCounter() {
+        WorkCounter--;
+    }
+
+    private IServerMessage remoteCall0(String service, String method, Object[] params) throws ClientException, SocketException {
         int sessionId = this.sessionId.incrementAndGet();
         int id = transmitter.writeMessage(factory.createMessage(sessionId, service, method, params));
         if(id == 0) {
@@ -49,7 +88,6 @@ public class Client implements IClient {
 
         IServerMessage obj = transmitter.readMessage(sessionId);
         if(obj == null) {
-//            transmitter.close();
             log.error("obj == null");
             throw new SocketException("obj == null");
         }
