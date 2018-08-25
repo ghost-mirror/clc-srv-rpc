@@ -4,7 +4,7 @@ import com.ghostmirror.cltsrvrpc.common.IClientMessage;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 
 public class DataLogger {
-    private static StringBuilder sb = new StringBuilder();
+    private static final StringBuilder sb = new StringBuilder();
 
     public static synchronized String client_request (IClientMessage message) {
         sb.delete(0, sb.length());

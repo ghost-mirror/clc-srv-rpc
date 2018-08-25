@@ -18,7 +18,6 @@ public class ServiceSessionPool extends AThreadPool implements IExecutor {
     private final Lock commandLock = new ReentrantLock();
     private final Condition setCommand  = commandLock.newCondition();
     private final Condition runCommand  = commandLock.newCondition();
-    private int WorkCounter = 0;
 
     public ServiceSessionPool (int queueSize, int poolSize) {
         super(queueSize, poolSize, new ServiceSessionRejected());
@@ -79,8 +78,8 @@ public class ServiceSessionPool extends AThreadPool implements IExecutor {
     }
 
     public void execute(ISession session) {
-        commandLock.lock();
         log.debug("new command");
+        commandLock.lock();
         try {
             while(command != null) {
                 log.debug("!canExecuteWithoutReject " + getQueue().size());

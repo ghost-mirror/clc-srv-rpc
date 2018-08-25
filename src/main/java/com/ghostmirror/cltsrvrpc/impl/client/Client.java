@@ -1,9 +1,6 @@
 package com.ghostmirror.cltsrvrpc.impl.client;
 
-import com.ghostmirror.cltsrvrpc.client.ClientException;
-import com.ghostmirror.cltsrvrpc.client.ClientStopped;
-import com.ghostmirror.cltsrvrpc.client.IClient;
-import com.ghostmirror.cltsrvrpc.client.IClientMessageFactory;
+import com.ghostmirror.cltsrvrpc.client.*;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 import com.ghostmirror.cltsrvrpc.impl.common.DataLogger;
 import org.apache.log4j.Logger;
@@ -11,12 +8,11 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class Client implements IClient {
 //    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
-    private final ClientMessageTransmitter transmitter;
+    private final IClientMessageTransmitter transmitter;
     private final Thread transmitterThread;
     private final IClientMessageFactory factory = new ClientMessageFactory();
     private final AtomicInteger sessionId   = new AtomicInteger(0);
@@ -26,6 +22,10 @@ public class Client implements IClient {
     public Client(String host, int port) throws IOException {
         transmitter = new ClientMessageTransmitter(host, port);
         transmitterThread = new Thread(transmitter);
+    }
+
+    @Override
+    public void start() {
         transmitterThread.start();
         log.info("Client connected to socket.");
     }

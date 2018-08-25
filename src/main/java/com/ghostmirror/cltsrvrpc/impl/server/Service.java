@@ -8,22 +8,23 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class Service implements IService {
-    private Object impl;
+    private final Object object;
+    private final Class  ServiceClass;
 
-    public Service (Object impl) {
-       this.impl = impl;
+    public Service (Object object) {
+       this.object = object;
+       ServiceClass = object.getClass();
     }
 
     @Override
     public IServiceResult invoke(String method, Object[] params) {
-        Class cls = impl.getClass();
-        int len = (params == null)?0:params.length;
-        Class[] paramTypes = new Class[len];
-        Method m;
-
         if(method == null) {
             return new ServiceResult(EServiceResult.WrongMethod);
         }
+
+        int len = (params == null)?0:params.length;
+        Class[] paramTypes = new Class[len];
+        Method m;
 
         for (int i = 0; i < len; i++) {
             if(params[i] == null) {
@@ -34,19 +35,21 @@ public class Service implements IService {
         }
 
         try {
-            m = cls.getMethod(method, paramTypes);
+            m = ServiceClass.getMethod(method, paramTypes);
         } catch (NoSuchMethodException e) {
-            Method[] methods = cls.getMethods();
+            Method[] methods = ServiceClass.getMethods();
             for (Method mm : methods) {
                 if(mm.getName().equals(method)) {
                     return new ServiceResult(EServiceResult.WrongParameters);
                 }
             }
             return new ServiceResult(EServiceResult.WrongMethod);
+        } catch (SecurityException e) {
+            return new ServiceResult(EServiceResult.WrongMethod);
         }
 
         try {
-            return new ServiceResult(m.invoke(impl, params), (m.getReturnType()==void.class)?EServiceResult.VOID:EServiceResult.RESULT);
+            return new ServiceResult(m.invoke(object, params), (m.getReturnType()==void.class)?EServiceResult.VOID:EServiceResult.RESULT);
         } catch (IllegalAccessException|InvocationTargetException e) {
             return new ServiceResult(EServiceResult.InnerError);
         }

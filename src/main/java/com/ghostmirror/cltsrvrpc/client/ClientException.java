@@ -3,7 +3,7 @@ package com.ghostmirror.cltsrvrpc.client;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 
 public class ClientException extends Exception {
-    private static StringBuilder sb = new StringBuilder();
+    private static final StringBuilder sb = new StringBuilder();
 
     private ClientException(String message) {
         super(message);

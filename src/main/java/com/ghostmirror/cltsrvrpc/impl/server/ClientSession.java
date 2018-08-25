@@ -22,8 +22,7 @@ class ClientSession implements Runnable {
     private final ObjectInputStream objectInput;
     private final ObjectOutputStream objectOutput;
     private final IResponseHandler handler = new ResponseHandler();
-    private volatile int WorkCounter = 0;
-    private final Object monitor = new Object();
+    private int WorkCounter = 0;
 
     public ClientSession(Socket socket, ISessionContext context) throws IOException {
         this.socket  = socket;
@@ -36,10 +35,6 @@ class ClientSession implements Runnable {
             throw e;
         }
     }
-
- //   public synchronized boolean isStopped() {
- //       return WorkCounter == 0;
- //   }
 
     @Override
     public void run() {
@@ -75,11 +70,10 @@ class ClientSession implements Runnable {
             context.request(object, handler);
         }
 
-        System.out.println("Client session is interrupted, WorkCounter = " + WorkCounter);
-        synchronized (monitor) {
+        synchronized (this) {
             while (WorkCounter != 0) {
                 try {
-                    monitor.wait();
+                    this.wait();
                 } catch (InterruptedException e) {
                     if(Thread.currentThread() instanceof IThreadContext) {
                         ((IThreadContext)Thread.currentThread()).shutdown();
@@ -123,17 +117,13 @@ class ClientSession implements Runnable {
         log.info("Client socket closed!");
     }
 
-    private  void incWorkCounter() {
-        synchronized (monitor) {
-            WorkCounter++;
-        }
+    private  synchronized void incWorkCounter() {
+        WorkCounter++;
     }
 
-    private void decWorkCounter() {
-        synchronized (monitor) {
-            WorkCounter--;
-            monitor.notify();
-        }
+    private synchronized void decWorkCounter() {
+        WorkCounter--;
+        this.notify();
     }
 
     private Object readObject () throws IOException, ClassNotFoundException {

@@ -25,7 +25,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
     private IServerMessage id;
 
     public ClientMessageTransmitter(String host, int port) throws IOException {
-        socket = new Socket("localhost", port);
+        socket = new Socket(host, port);
         objectOutput = new ObjectOutputStream(socket.getOutputStream());
         objectInput  = new ObjectInputStream (socket.getInputStream());
         log.info("Client connected to socket.");
@@ -87,7 +87,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
         return getObject();
     }
 
-    protected void close() {
+    public void close() {
         synchronized (monitor) {
             monitor.notifyAll();
         }
@@ -155,7 +155,7 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                     return;
                 }
             } catch (InvalidClassException e) {
-                log.error("ClassNotFoundException");
+                log.error("InvalidClassException");
                 return;
             } catch (ClassNotFoundException e) {
                 log.error("ClassNotFoundException");
@@ -180,10 +180,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
             IServerMessage message = (IServerMessage)object;
             if(message.getType() == EServerResult.ID) {
                 id = message;
-                monitor.notifyAll();
                 log.debug("ID delivered");
                 monitor.notifyAll();
-                while (id != null) {
+                do {
                     if (socket.isClosed()) {
                         return;
                     }
@@ -192,14 +191,14 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                         monitor.wait();
                         log.debug("reader free(ID)");
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        return;
                     }
-                }
+                } while (id != null);
             } else {
                 msg = message;
                 log.debug("Object delivered");
                 monitor.notifyAll();
-                while (msg != null) {
+                do {
                     if (socket.isClosed()) {
                         return;
                     }
@@ -208,9 +207,9 @@ public class ClientMessageTransmitter implements Runnable, IClientMessageTransmi
                         monitor.wait();
                         log.debug("reader free(msg)");
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        return;
                     }
-                }
+                } while (msg != null);
             }
         }
     }

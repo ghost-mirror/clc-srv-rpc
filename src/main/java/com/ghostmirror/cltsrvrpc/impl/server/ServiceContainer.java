@@ -20,7 +20,7 @@ public class ServiceContainer implements IServiceContainer {
 //    private static final Logger log = Logger.getLogger(ServiceContainer.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Server");
     private final Properties property = new Properties();
-    private final HashMap<String,IService> services = new HashMap<String,IService>();
+    private final HashMap<String,IService> services = new HashMap<>();
 
     public IService getService(String name) {
         IService service = services.get(name);
@@ -39,30 +39,28 @@ public class ServiceContainer implements IServiceContainer {
 
     private void initServices() throws Exception {
         log.info("Initializing services");
-        for (String sname : property.stringPropertyNames()) {
-            String cname = property.getProperty(sname);
-            log.info("Loading service : " + sname + " {" + cname + "}");
+        for (String key : property.stringPropertyNames()) {
+            String value = property.getProperty(key);
+            log.info("Loading service : " + key + " {" + value + "}");
 
-            Class lclass;
+            Class ServiceClass;
             Object object;
             try {
-                lclass = Class.forName(cname);
-                log.info("Loaded Class : " + lclass.getCanonicalName());
+                ServiceClass = Class.forName(value);
+                log.info("Loaded Class : " + ServiceClass.getCanonicalName());
             } catch (ClassNotFoundException e) {
                 throw new Exception(e.getMessage());
             }
             try {
-                object = lclass.newInstance();
-            } catch (InstantiationException e) {
-                throw new Exception(e.getMessage());
-            } catch (IllegalAccessException e) {
+                object = ServiceClass.newInstance();
+            } catch (InstantiationException|IllegalAccessException e) {
                 throw new Exception(e.getMessage());
             }
             if (object == null) {
                 throw new Exception("object == null");
             }
 
-            services.put(sname, new Service(object));
+            services.put(key, new Service(object));
         }
         log.info("Services are initialized");
     }
@@ -70,11 +68,9 @@ public class ServiceContainer implements IServiceContainer {
     private void initProperties(String path) throws IOException {
         log.info("Initializing properties");
         try {
-            FileInputStream fis = new FileInputStream(path);
-            try {
+
+            try(FileInputStream fis = new FileInputStream(path)) {
                 property.load(fis);
-            } finally {
-                fis.close();
             }
         } catch (IOException e) {
             log.error("Server property file is absent!");
@@ -83,7 +79,7 @@ public class ServiceContainer implements IServiceContainer {
         log.info("Properties are initialized");
     }
 
-    private class WrongService extends Error implements IService {
+    private static class WrongService extends Error implements IService {
         public IServiceResult invoke(String method, Object[] params) {
             return new ServiceResult(EServiceResult.WrongService);
         }

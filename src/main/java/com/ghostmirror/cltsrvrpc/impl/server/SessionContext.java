@@ -4,7 +4,6 @@ package com.ghostmirror.cltsrvrpc.impl.server;
 import com.ghostmirror.cltsrvrpc.server.IRespondent;
 import com.ghostmirror.cltsrvrpc.server.IResponseHandler;
 import com.ghostmirror.cltsrvrpc.server.ISessionContext;
-import com.ghostmirror.cltsrvrpc.server.IThreadPool;
 
 public class SessionContext implements ISessionContext {
     private final IRespondent respondent;

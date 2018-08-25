@@ -7,19 +7,19 @@ import java.util.concurrent.*;
 
 public abstract class AThreadPool implements IThreadPool {
     private final ThreadPoolExecutor pool;
-    private CapacityQueue queue;
+    private final CapacityQueue queue;
 
     protected CapacityQueue getQueue() {
         return queue;
     }
 
-    public ThreadPoolExecutor getPool() {
+    protected ThreadPoolExecutor getPool() {
         return pool;
     }
 
-    public AThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
+    protected AThreadPool(int queueSize, int poolSize, RejectedExecutionHandler handler) {
         queue = new CapacityQueue(queueSize);
-        pool  = new CustomThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
+        pool  = new CustomThreadPoolExecutor(poolSize, poolSize, queue,
                 new WorkThreadFactory(), handler, this);
     }
 
@@ -50,17 +50,15 @@ public abstract class AThreadPool implements IThreadPool {
 
     abstract protected void afterExecution(Runnable r, Throwable t);
 
-        private class CustomThreadPoolExecutor extends ThreadPoolExecutor {
+    private static class CustomThreadPoolExecutor extends ThreadPoolExecutor {
         private final AThreadPool aThreadPool;
 
-        public CustomThreadPoolExecutor(int corePoolSize,
-                                  int maximumPoolSize,
-                                  long keepAliveTime,
-                                  TimeUnit unit,
-                                  BlockingQueue<Runnable> workQueue,
-                                  ThreadFactory threadFactory,
-                                  RejectedExecutionHandler handler, AThreadPool aThreadPool) {
-            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+        protected CustomThreadPoolExecutor(int corePoolSize,
+                                           int maximumPoolSize,
+                                           BlockingQueue<Runnable> workQueue,
+                                           ThreadFactory threadFactory,
+                                           RejectedExecutionHandler handler, AThreadPool aThreadPool) {
+            super(corePoolSize, maximumPoolSize, (long) 100, TimeUnit.SECONDS, workQueue, threadFactory, handler);
             this.aThreadPool = aThreadPool;
         }
 

@@ -8,6 +8,7 @@ public class ClientMessage implements IClientMessage {
     private final String method;
     private final Object[] params;
 
+    @SuppressWarnings("Annotator")
     public ClientMessage(int id, String service, String method, Object[] params) {
         this.id      = id;
         this.service = service;
@@ -30,6 +31,7 @@ public class ClientMessage implements IClientMessage {
         return method;
     }
 
+    @SuppressWarnings("Annotator")
     @Override
     public Object[] getParams() {
         return params;

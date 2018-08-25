@@ -8,7 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class ServerManager {
+class ServerManager {
 //    private static final Logger log = Logger.getLogger(ServerManager.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Server");
 
@@ -20,17 +20,19 @@ public class ServerManager {
         ISessionContext       sessionContext;
         IServerContext        serverContext;
         IThreadPool           server;
-        BufferedReader br;
+        InputStreamReader     inputStreamReader;
+        BufferedReader        bufferedReader;
 
         try {
-            factory    = new ServerMessageFactory();
-            container  = new ServiceContainer("src/main/resources/service.properties");
-            pool       = new ServiceSessionPool(10, 10);
-            respondent = new ServerRespondent(factory, container, pool);
-            sessionContext   = new SessionContext(respondent);
-            serverContext    = new ServerContext(pool);
-            server     = new Server(Integer.parseInt(args[0]), 10, 10, serverContext, sessionContext);
-            br = new BufferedReader(new InputStreamReader(System.in));
+            factory           = new ServerMessageFactory();
+            container         = new ServiceContainer("src/main/resources/service.properties");
+            pool              = new ServiceSessionPool(10, 10);
+            respondent        = new ServerRespondent(factory, container, pool);
+            sessionContext    = new SessionContext(respondent);
+            serverContext     = new ServerContext(pool);
+            server            = new Server(Integer.parseInt(args[0]), 10, 10, serverContext, sessionContext);
+            inputStreamReader = new InputStreamReader(System.in);
+            bufferedReader    = new BufferedReader(inputStreamReader);
         } catch (Exception e) {
             log.error("Initialization error");
             e.printStackTrace();
@@ -46,7 +48,10 @@ public class ServerManager {
         while (!server.isShutdown() && !pool.isShutdown()) {
             try {
                 System.out.print("cmd> ");
-                String command = br.readLine();
+                String command = bufferedReader.readLine();
+                if (command == null) {
+                    continue;
+                }
                 if(command.equals("stop")) {
                     System.out.println("Waiting for clients to disconnect...");
                     break;

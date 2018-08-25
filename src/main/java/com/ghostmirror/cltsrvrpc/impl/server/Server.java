@@ -17,15 +17,15 @@ public class Server extends AThreadPool {
 //    private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Server");
     private final ServerSocket serverSocket;
-    private ISessionContext sessionContext;
-    private IServerContext  serverContext;
+    private final ISessionContext sessionContext;
+//    private IServerContext  serverContext;
     private volatile boolean IsShutdown = false;
     private final Object monitor = new Object();
 
 
     public Server (int port, int queueSize, int poolSize, IServerContext serverContext, ISessionContext sessionContext) throws Exception {
         super(queueSize, poolSize, new ClientSessionRejected());
-        this.serverContext  = serverContext;
+//        this.serverContext  = serverContext;
         this.sessionContext = sessionContext;
         serverSocket = new ServerSocket(port);
     }
@@ -55,6 +55,7 @@ public class Server extends AThreadPool {
                 try {
                     monitor.wait();
                 } catch (InterruptedException e) {
+                    IsShutdown = true;
                 }
             }
         }
@@ -89,7 +90,6 @@ public class Server extends AThreadPool {
         return IsShutdown && getPool().getActiveCount() == 0;
     }
 
-    @Override
     protected void afterExecution(Runnable r, Throwable t) {
         if(IsShutdown) {
             synchronized (monitor) {

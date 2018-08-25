@@ -1,8 +1,12 @@
 package com.ghostmirror.cltsrvrpc.impl.service;
 
-import java.util.Random;
-
+@SuppressWarnings({"unused", "EmptyMethod"})
 public class ServiceImpl2 {
-    public Integer  rnd () {return (new Random()).nextInt();}
-    public void nothing () {}
+    public Integer  rnd () {
+        return 42;
+    }
+
+    public void nothing () {
+
+    }
 }
