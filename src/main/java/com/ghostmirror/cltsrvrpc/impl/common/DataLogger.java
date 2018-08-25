@@ -26,17 +26,17 @@ public class DataLogger {
                 return sb.toString();
             case VOID:     sb.append("response"); log_message(obj.getRequest()); sb.append(".result(void)");
                 return sb.toString();
-            case Rejected:         sb.append("Rejected ")        .append(obj.getObject()); break;
-            case WrongService:     sb.append("Wrong Service ")   .append(obj.getObject()); break;
-            case WrongMethod:      sb.append("Wrong Method ")    .append(obj.getObject()); break;
-            case WrongParametrs:   sb.append("Wrong Parameters ").append(obj.getObject()); break;
-            case InnerError:       sb.append("Inner Error ")     .append(obj.getObject()); break;
-            case WrongObjectNull:  sb.append("Object, is Null ") .append(obj.getObject()); break;
-            case WrongRequest:     sb.append("Wrong Request ")   .append(obj.getObject()); break;
-            case WrongClass:       sb.append("Wrong Class ")     .append(obj.getObject()); break;
-            case WrongObject:      sb.append("Wrong Object ")    .append(obj.getObject()); break;
-            case RuntimeErrror:    sb.append("Runtime Errror: ") .append(obj.getObject()); break;
-            default:               sb.append("Undefined Error");
+            case Rejected:          sb.append("Rejected ")        .append(obj.getObject()); break;
+            case WrongService:      sb.append("Wrong Service ")   .append(obj.getObject()); break;
+            case WrongMethod:       sb.append("Wrong Method ")    .append(obj.getObject()); break;
+            case WrongParameters:   sb.append("Wrong Parameters ").append(obj.getObject()); break;
+            case InnerError:        sb.append("Inner Error ")     .append(obj.getObject()); break;
+            case WrongObjectNull:   sb.append("Object, is Null ") .append(obj.getObject()); break;
+            case WrongRequest:      sb.append("Wrong Request ")   .append(obj.getObject()); break;
+            case WrongClass:        sb.append("Wrong Class ")     .append(obj.getObject()); break;
+            case WrongObject:       sb.append("Wrong Object ")    .append(obj.getObject()); break;
+            case RuntimeError:      sb.append("Runtime Error: ")  .append(obj.getObject()); break;
+            default:                sb.append("Undefined Error");
         }
         log_message(obj.getRequest());
         return sb.toString();

@@ -19,13 +19,13 @@ public class ServerMessageFactory implements IServerMessageFactory {
     public IServerMessage createMessage(IClientMessage msg, IServiceResult result) {
         EServerResult type;
         switch(result.getType()) {
-            case VOID:           type = EServerResult.VOID;           break;
-            case RESULT:         type = EServerResult.RESULT;         break;
-            case WrongService:   type = EServerResult.WrongService;   break;
-            case WrongMethod:    type = EServerResult.WrongMethod;    break;
-            case WrongParametrs: type = EServerResult.WrongParametrs; break;
-            case InnerError:     type = EServerResult.InnerError;     break;
-            default:             type = EServerResult.InnerError;
+            case VOID:            type = EServerResult.VOID;            break;
+            case RESULT:          type = EServerResult.RESULT;          break;
+            case WrongService:    type = EServerResult.WrongService;    break;
+            case WrongMethod:     type = EServerResult.WrongMethod;     break;
+            case WrongParameters: type = EServerResult.WrongParameters; break;
+            case InnerError:      type = EServerResult.InnerError;      break;
+            default:              type = EServerResult.InnerError;
         }
         IServerMessage message = new ServerMessage(msg.getId(), result.getObject(), type, msg);
         if(type == EServerResult.VOID || type == EServerResult.RESULT) {
@@ -72,7 +72,7 @@ public class ServerMessageFactory implements IServerMessageFactory {
         } else if (e instanceof ClassNotFoundException) {
             message = new ServerMessage(id, e.toString(), EServerResult.WrongClass, msg);
         } else if (e instanceof RuntimeException) {
-            message = new ServerMessage(id, e.toString(), EServerResult.RuntimeErrror, msg);
+            message = new ServerMessage(id, e.toString(), EServerResult.RuntimeError, msg);
         } else {
             message = new ServerMessage(id, e.toString(), EServerResult.WrongRequest, msg);
         }

@@ -52,7 +52,7 @@ public class ServerManager {
                     break;
                 }
             } catch (IOException e) {
-                log.error("Readder error");
+                log.error("Reader error");
                 log.error(e);
                 break;
             }

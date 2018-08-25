@@ -1,6 +1,6 @@
 package com.ghostmirror.cltsrvrpc.server;
 
-public interface IEexecutor {
+public interface IExecutor {
     void execute(ISession session);
     void blockedExecute(ISession session);
 }

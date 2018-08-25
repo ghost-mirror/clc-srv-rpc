@@ -17,15 +17,15 @@ public class Service implements IService {
     @Override
     public IServiceResult invoke(String method, Object[] params) {
         Class cls = impl.getClass();
-        int plen = (params == null)?0:params.length;
-        Class[] paramTypes = new Class[plen];
+        int len = (params == null)?0:params.length;
+        Class[] paramTypes = new Class[len];
         Method m;
 
         if(method == null) {
             return new ServiceResult(EServiceResult.WrongMethod);
         }
 
-        for (int i = 0; i < plen; i++) {
+        for (int i = 0; i < len; i++) {
             if(params[i] == null) {
                 paramTypes[i] = null;
             } else {
@@ -39,7 +39,7 @@ public class Service implements IService {
             Method[] methods = cls.getMethods();
             for (Method mm : methods) {
                 if(mm.getName().equals(method)) {
-                    return new ServiceResult(EServiceResult.WrongParametrs);
+                    return new ServiceResult(EServiceResult.WrongParameters);
                 }
             }
             return new ServiceResult(EServiceResult.WrongMethod);
@@ -47,9 +47,7 @@ public class Service implements IService {
 
         try {
             return new ServiceResult(m.invoke(impl, params), (m.getReturnType()==void.class)?EServiceResult.VOID:EServiceResult.RESULT);
-        } catch (IllegalAccessException e) {
-            return new ServiceResult(EServiceResult.InnerError);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException|InvocationTargetException e) {
             return new ServiceResult(EServiceResult.InnerError);
         }
     }

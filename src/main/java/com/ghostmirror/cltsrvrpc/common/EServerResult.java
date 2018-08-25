@@ -7,11 +7,11 @@ public enum EServerResult {
     Rejected,
     WrongService,
     WrongMethod,
-    WrongParametrs,
+    WrongParameters,
     InnerError,
     WrongObjectNull,
     WrongRequest,
     WrongClass,
     WrongObject,
-    RuntimeErrror
+    RuntimeError
 }

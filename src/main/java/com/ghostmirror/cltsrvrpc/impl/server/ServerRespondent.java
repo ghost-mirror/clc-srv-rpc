@@ -10,9 +10,9 @@ public class ServerRespondent implements IRespondent {
     private static final Logger log = Logger.getLogger("Server");
     private final IServerMessageFactory factory;
     private final IServiceContainer     container;
-    private final IEexecutor            executor;
+    private final IExecutor             executor;
 
-    public ServerRespondent(IServerMessageFactory factory, IServiceContainer container, IEexecutor executor) {
+    public ServerRespondent(IServerMessageFactory factory, IServiceContainer container, IExecutor executor) {
         this.factory   = factory;
         this.container = container;
         this.executor  = executor;

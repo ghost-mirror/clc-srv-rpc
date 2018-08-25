@@ -57,10 +57,7 @@ class ClientSession implements Runnable {
                     break;
                 }
                 writeObject0(context.requestId(object));
-            } catch (SocketException e) {
-                close();
-                return;
-            } catch (EOFException e) {
+            } catch (SocketException|EOFException e) {
                 close();
                 return;
             } catch (IOException e) {
@@ -143,7 +140,7 @@ class ClientSession implements Runnable {
         log.debug("waiting object...");
         Object object = objectInput.readObject();
 //        objectInput.available();
-        log.debug("object readed");
+        log.debug("object read");
         return object;
     }
 
@@ -159,9 +156,7 @@ class ClientSession implements Runnable {
         try {
             objectOutput.writeObject(obj);
             objectOutput.flush();
-            log.debug("result writed");
-        } catch (SocketException e) {
-            close();
+            log.debug("result written");
         } catch (IOException e) {
             close();
         }

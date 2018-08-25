@@ -1,6 +1,6 @@
 package com.ghostmirror.cltsrvrpc.impl.server;
 
-import com.ghostmirror.cltsrvrpc.server.IEexecutor;
+import com.ghostmirror.cltsrvrpc.server.IExecutor;
 import com.ghostmirror.cltsrvrpc.server.ISession;
 import com.ghostmirror.cltsrvrpc.server.IThreadContext;
 import org.apache.log4j.Logger;
@@ -11,7 +11,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ServiceSessionPool extends AThreadPool implements IEexecutor {
+public class ServiceSessionPool extends AThreadPool implements IExecutor {
 //    private static final Logger log = Logger.getLogger(ServiceSessionPool.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Server");
     private Runnable command;
@@ -78,7 +78,6 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
         System.out.println("ServiceSessionPool closed!");
     }
 
-    @Override
     public void execute(ISession session) {
         commandLock.lock();
         log.debug("new command");
@@ -111,7 +110,6 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
         return false;
     }
 
-    @Override
     public void blockedExecute(ISession session) {
         commandLock.lock();
         log.debug("new command");

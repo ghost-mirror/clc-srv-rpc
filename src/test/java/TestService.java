@@ -66,7 +66,7 @@ public class TestService extends Assert {
     @Test
     public void arithmetic_3() {
         IServiceResult result = container.getService("arithmetic").invoke("mul", new Object[]{7, 11, 11});
-        assertSame(result.getType(), EServiceResult.WrongParametrs);
+        assertSame(result.getType(), EServiceResult.WrongParameters);
     }
     @Test
     public void stupid_0() {
@@ -86,7 +86,7 @@ public class TestService extends Assert {
     @Test
     public void sleepy_0() {
         IServiceResult result = container.getService("sleepy").invoke("sleep", new Object[]{});
-        assertSame(result.getType(), EServiceResult.WrongParametrs);
+        assertSame(result.getType(), EServiceResult.WrongParameters);
     }
     @Test
     public void sleepy_1() {

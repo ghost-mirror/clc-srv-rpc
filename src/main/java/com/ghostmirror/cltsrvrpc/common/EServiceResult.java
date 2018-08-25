@@ -5,6 +5,6 @@ public enum EServiceResult {
     VOID,
     WrongService,
     WrongMethod,
-    WrongParametrs,
+    WrongParameters,
     InnerError
 }
