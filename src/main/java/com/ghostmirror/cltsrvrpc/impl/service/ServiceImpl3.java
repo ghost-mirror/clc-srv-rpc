@@ -1,6 +1,5 @@
 package com.ghostmirror.cltsrvrpc.impl.service;
 
-import java.lang.Thread;
 import java.util.Date;
 
 @SuppressWarnings({"unused"})

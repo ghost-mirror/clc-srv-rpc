@@ -25,7 +25,8 @@ public class ServerRespondent implements IRespondent {
         }
         IClientMessage message = (IClientMessage)obj;
         log.info(DataLogger.client_request(message));
-        IServiceResult result  = container.getService(message.getService()).invoke(message.getMethod(), message.getParams());
+        IServiceResult result  = container.getService(message.getService()).
+                invoke(message.getMethod(), message.getParams());
         return factory.createMessage(message, result);
     }
 
@@ -52,7 +53,9 @@ public class ServerRespondent implements IRespondent {
     }
 
     private boolean isNotValidRequest(Object obj) {
-        if(obj == null) return true;
+        if(obj == null) {
+            return true;
+        }
         return !(obj    instanceof IClientMessage);
     }
 }

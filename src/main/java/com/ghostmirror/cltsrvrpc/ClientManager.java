@@ -79,10 +79,8 @@ class Caller implements Runnable {
                 }
 
                 message = c.remoteCall("arithmetic", "mul", new Object[]{5, 10});
-                if(message.getType() == EServerResult.RESULT) {
-                    if(((Integer) message.getObject()).intValue() != 50) {
-                        log.error("Result must be 50 but received " + ((Integer) message.getObject()).intValue());
-                    }
+                if(message.getType() == EServerResult.RESULT && ((Integer) message.getObject()).intValue() != 50) {
+                    log.error("Result must be 50 but received " + ((Integer) message.getObject()).intValue());
                 }
                 c.remoteCall("arithmetic", "div", new Object[]{22, 4});
                 c.remoteCall("sleepy", "sleep", new Object[]{1});

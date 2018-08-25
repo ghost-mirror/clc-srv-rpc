@@ -10,17 +10,14 @@ import org.apache.log4j.Logger;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-
-import java.lang.InstantiationException;
-import java.lang.ClassNotFoundException;
-import java.lang.IllegalAccessException;
 
 public class ServiceContainer implements IServiceContainer {
 //    private static final Logger log = Logger.getLogger(ServiceContainer.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Server");
     private final Properties property = new Properties();
-    private final HashMap<String,IService> services = new HashMap<>();
+    private final Map<String,IService> services = new HashMap<>();
 
     public IService getService(String name) {
         IService service = services.get(name);
@@ -45,17 +42,9 @@ public class ServiceContainer implements IServiceContainer {
 
             Class ServiceClass;
             Object object;
-            try {
-                ServiceClass = Class.forName(value);
-                log.info("Loaded Class : " + ServiceClass.getCanonicalName());
-            } catch (ClassNotFoundException e) {
-                throw new Exception(e.getMessage());
-            }
-            try {
-                object = ServiceClass.newInstance();
-            } catch (InstantiationException|IllegalAccessException e) {
-                throw new Exception(e.getMessage());
-            }
+            ServiceClass = Class.forName(value);
+            log.info("Loaded Class : " + ServiceClass.getCanonicalName());
+            object = ServiceClass.newInstance();
             if (object == null) {
                 throw new Exception("object == null");
             }

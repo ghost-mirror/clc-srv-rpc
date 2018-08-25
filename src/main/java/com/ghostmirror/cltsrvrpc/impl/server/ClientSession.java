@@ -89,7 +89,9 @@ class ClientSession implements Runnable {
     }
 
     private boolean isShutdown () {
-        if(socket.isClosed()) return true;
+        if(socket.isClosed())  {
+            return true;
+        }
         if(!(Thread.currentThread() instanceof IThreadContext)) {
             return  Thread.currentThread().isInterrupted();
         }
@@ -97,7 +99,9 @@ class ClientSession implements Runnable {
     }
 
     private boolean isTerminate () {
-        if(socket.isClosed()) return true;
+        if(socket.isClosed()) {
+            return true;
+        }
         if(!(Thread.currentThread() instanceof IThreadContext)) {
             return  Thread.currentThread().isInterrupted();
         }
