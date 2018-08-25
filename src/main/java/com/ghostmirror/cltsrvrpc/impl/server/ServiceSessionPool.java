@@ -2,6 +2,7 @@ package com.ghostmirror.cltsrvrpc.impl.server;
 
 import com.ghostmirror.cltsrvrpc.server.IEexecutor;
 import com.ghostmirror.cltsrvrpc.server.ISession;
+import com.ghostmirror.cltsrvrpc.server.IThreadContext;
 import org.apache.log4j.Logger;
 
 import java.util.concurrent.RejectedExecutionHandler;
@@ -26,8 +27,7 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
     @Override
     public void shutdown() {
         getPool().shutdownNow();
-        System.out.println("ServiceSessionPool shutdown...");
-        System.out.println("getPool().getActiveCount() = " + getPool().getActiveCount());
+        System.out.println("Service Session Pool shutdown...");
         commandLock.lock();
         try {
             runCommand.signal();
@@ -66,6 +66,9 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
                 command = null;
                 setCommand.signal();
             } catch (InterruptedException e) {
+                if(isShutdown()) {
+                    break;
+                }
                 Thread.currentThread().interrupt();
                 System.out.println("ServiceSessionPool InterruptedException!");
             } finally {
@@ -81,16 +84,31 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
         log.debug("new command");
         try {
             while(command != null) {
-                setCommand.await();
+                log.debug("!canExecuteWithoutReject " + getQueue().size());
+                try {
+                    setCommand.await();
+                } catch (InterruptedException e) {
+                    if(isNeedShutdownReturn()) {
+                        return;
+                    }
+                }
             }
             this.command = session;
             log.debug("command can run");
             runCommand.signal();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         } finally {
             commandLock.unlock();
         }
+    }
+
+    private boolean isNeedShutdownReturn () {
+        if(!(Thread.currentThread() instanceof IThreadContext)) {
+            Thread.currentThread().interrupt();
+            return true;
+        }
+        IThreadContext hc = (IThreadContext)Thread.currentThread();
+        hc.shutdown();
+        return false;
     }
 
     @Override
@@ -100,13 +118,17 @@ public class ServiceSessionPool extends AThreadPool implements IEexecutor {
         try {
             while(!canExecuteWithoutReject()) {
                 log.debug("!canExecuteWithoutReject " + getQueue().size());
-                setCommand.await();
+                try {
+                    setCommand.await();
+                } catch (InterruptedException e) {
+                    if(isNeedShutdownReturn()) {
+                        return;
+                    }
+                }
             }
             this.command = session;
             log.debug("command can run");
             runCommand.signal();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         } finally {
             commandLock.unlock();
         }

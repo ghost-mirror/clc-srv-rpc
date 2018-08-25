@@ -11,21 +11,22 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Client implements IClient {
 //    private static final Logger log = Logger.getLogger(Client.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
     private final ClientMessageTransmitter transmitter;
-    private final Thread tr;
+    private final Thread transmitterThread;
     private final IClientMessageFactory factory = new ClientMessageFactory();
-    private AtomicInteger sessionId = new AtomicInteger(0);
-    private int WorkCounter = 0;
+    private final AtomicInteger sessionId   = new AtomicInteger(0);
+    private final AtomicInteger WorkCounter = new AtomicInteger(0);
     private volatile boolean Shutdown = false;
 
     public Client(String host, int port) throws IOException {
         transmitter = new ClientMessageTransmitter(host, port);
-        tr = new Thread(transmitter);
-        tr.start();
+        transmitterThread = new Thread(transmitter);
+        transmitterThread.start();
         log.info("Client connected to socket.");
     }
 
@@ -41,7 +42,7 @@ public class Client implements IClient {
 
     @Override
     public synchronized boolean isStopped() {
-        return WorkCounter == 0 && Shutdown;
+        return WorkCounter.get() == 0 && Shutdown;
     }
 
     @Override
@@ -55,23 +56,15 @@ public class Client implements IClient {
            throw new ClientStopped();
         }
         try {
-            incWorkCounter();
+            WorkCounter.incrementAndGet();
             return remoteCall0(service, method, params);
         } finally {
-            decWorkCounter();
+            WorkCounter.decrementAndGet();
             if(isStopped()) {
-                tr.interrupt();
+                transmitterThread.interrupt();
                 transmitter.close();
             }
         }
-    }
-
-    private synchronized void incWorkCounter() {
-        WorkCounter++;
-    }
-
-    private synchronized void decWorkCounter() {
-        WorkCounter--;
     }
 
     private IServerMessage remoteCall0(String service, String method, Object[] params) throws ClientException, SocketException {

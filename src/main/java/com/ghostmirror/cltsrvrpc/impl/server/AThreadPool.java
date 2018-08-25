@@ -20,7 +20,7 @@ public abstract class AThreadPool implements IThreadPool {
     public AThreadPool (int queueSize, int poolSize, RejectedExecutionHandler handler) {
         queue = new CapacityQueue(queueSize);
         pool  = new CustomThreadPoolExecutor(poolSize, poolSize, 100, TimeUnit.SECONDS, queue,
-                Executors.defaultThreadFactory(), handler, this);
+                new WorkThreadFactory(), handler, this);
     }
 
     @Override
@@ -68,6 +68,12 @@ public abstract class AThreadPool implements IThreadPool {
             super.afterExecute(r, t);
             aThreadPool.afterExecution(r, t);
         }
+    }
+}
+
+class WorkThreadFactory implements ThreadFactory {
+    public Thread newThread(Runnable r) {
+        return new WorkThread(r);
     }
 }
 

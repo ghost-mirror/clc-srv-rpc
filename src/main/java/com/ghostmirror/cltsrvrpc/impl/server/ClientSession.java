@@ -3,6 +3,7 @@ package com.ghostmirror.cltsrvrpc.impl.server;
 import com.ghostmirror.cltsrvrpc.server.IResponseHandler;
 import com.ghostmirror.cltsrvrpc.server.ISessionContext;
 
+import com.ghostmirror.cltsrvrpc.server.IThreadContext;
 import org.apache.log4j.Logger;
 
 import java.io.EOFException;
@@ -42,10 +43,12 @@ class ClientSession implements Runnable {
 
     @Override
     public void run() {
-        if (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
-            log.info("Client connected!");
+        if (isShutdown()) {
+            return;
         }
-        while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
+        log.info("Client connected!");
+
+        while (!isTerminate()) {
             Object object;
 
             try {
@@ -75,27 +78,47 @@ class ClientSession implements Runnable {
             context.request(object, handler);
         }
 
-
-        System.out.println("Client session is interrupted");
+        System.out.println("Client session is interrupted, WorkCounter = " + WorkCounter);
         synchronized (monitor) {
             while (WorkCounter != 0) {
                 try {
                     monitor.wait();
                 } catch (InterruptedException e) {
+                    if(Thread.currentThread() instanceof IThreadContext) {
+                        ((IThreadContext)Thread.currentThread()).shutdown();
+                    } else {
+                        break;
+                    }
                 }
             }
         }
         close();
-        System.out.println("Client stopped!");
-        log.info("Client stopped!");
+        System.out.println("Client Session stopped!");
+        log.info("Client Session stopped!");
+    }
+
+    private boolean isShutdown () {
+        if(socket.isClosed()) return true;
+        if(!(Thread.currentThread() instanceof IThreadContext)) {
+            return  Thread.currentThread().isInterrupted();
+        }
+        return ((IThreadContext)Thread.currentThread()).isShutdown() || Thread.currentThread().isInterrupted();
+    }
+
+    private boolean isTerminate () {
+        if(socket.isClosed()) return true;
+        if(!(Thread.currentThread() instanceof IThreadContext)) {
+            return  Thread.currentThread().isInterrupted();
+        }
+        return ((IThreadContext)Thread.currentThread()).isShutdown();
     }
 
     public void close() {
         try {
             objectInput.close();
             if(!socket.isClosed()) {
-                socket.close();
                 objectOutput.close();
+                socket.close();
             }
         } catch (IOException e) {
             log.error("IOException: Client socket closed!");
@@ -119,6 +142,7 @@ class ClientSession implements Runnable {
     private Object readObject () throws IOException, ClassNotFoundException {
         log.debug("waiting object...");
         Object object = objectInput.readObject();
+//        objectInput.available();
         log.debug("object readed");
         return object;
     }

@@ -32,19 +32,20 @@ public class ClientManager {
 
 //  Shutdown test
         try {
-            Thread.sleep(300000);
+            Thread.sleep(3);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            client.shutdown();
+//            client.shutdown();
         }
-
 
         for(Thread tr:threads) {
             try {
                 tr.join();
             } catch (InterruptedException e) {
                 tr.interrupt();
+                client.shutdown();
+                Thread.currentThread().interrupt();
             }
         }
         client.shutdown();
@@ -88,16 +89,17 @@ class Caller implements Runnable {
             } catch (ClientException e) {
 //                log.error(e.getMessage());
             } catch (ClientStopped e) {
-//                log.info("Client Stopped!");
-                return;
+                log.info("Client Stopped!");
+                break;
             } catch (SocketException e) {
                 log.error("Caller: Socket Exception!");
-                return;
+                break;
 //            } catch (InterruptedException e) {
 //                log.error("Caller: InterruptedException!");
 //                return;
             }
         }
+        Thread.currentThread().interrupt();
     }
 }
 
