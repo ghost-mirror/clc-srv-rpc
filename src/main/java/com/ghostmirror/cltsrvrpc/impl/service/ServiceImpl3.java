@@ -12,7 +12,7 @@ public class ServiceImpl3 {
         }
     }
 
-    public Date currentDate() {
+    static public Date currentDate() {
         return new Date();
     }
 }

@@ -47,6 +47,7 @@ public class ServiceSessionPool extends AThreadPool implements IExecutor {
 
     @Override
     public void run() {
+        commandProcessing:
         while(!isShutdown()  && !Thread.currentThread().isInterrupted()) {
             commandLock.lock();
             try {
@@ -54,11 +55,8 @@ public class ServiceSessionPool extends AThreadPool implements IExecutor {
                     log.debug("waiting for command...");
                     runCommand.await();
                     if(isShutdown()) {
-                        break;
+                        break commandProcessing;
                     }
-                }
-                if(isShutdown()) {
-                    break;
                 }
                 execute(command);
                 log.debug("execute command..." + getQueue().size());

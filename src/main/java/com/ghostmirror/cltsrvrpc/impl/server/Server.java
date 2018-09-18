@@ -9,8 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 public class Server extends AThreadPool {
@@ -20,11 +19,11 @@ public class Server extends AThreadPool {
     private final ISessionContext sessionContext;
 //    private IServerContext  serverContext;
     private volatile boolean IsShutdown = false;
-    private final Object monitor = new Object();
 
 
-    public Server (int port, int queueSize, int poolSize, IServerContext serverContext, ISessionContext sessionContext) throws Exception {
-        super(queueSize, poolSize, new ClientSessionRejected());
+    public Server (int port, int queueSize, int poolSize, IServerContext serverContext, ISessionContext sessionContext)
+            throws Exception {
+        super(queueSize, poolSize, (r,t) -> {log.info("Connection Rejected!"); ((ClientSession)r).close();});
 //        this.serverContext  = serverContext;
         this.sessionContext = sessionContext;
         serverSocket = new ServerSocket(port);
@@ -50,14 +49,10 @@ public class Server extends AThreadPool {
             execute(session);
         }
 
-        synchronized (monitor) {
-            while (getPool().getActiveCount() != 0) {
-                try {
-                    monitor.wait();
-                } catch (InterruptedException e) {
-                    IsShutdown = true;
-                }
-            }
+        try {
+            getPool().awaitTermination(1, TimeUnit.HOURS);
+        } catch (InterruptedException e) {
+            IsShutdown = true;
         }
         System.out.println("Server Stopped");
     }
@@ -88,23 +83,5 @@ public class Server extends AThreadPool {
     @Override
     public boolean isStopped() {
         return IsShutdown && getPool().getActiveCount() == 0;
-    }
-
-    protected void afterExecution(Runnable r, Throwable t) {
-        if(IsShutdown) {
-            synchronized (monitor) {
-                monitor.notify();
-            }
-        }
-    }
-}
-
-class ClientSessionRejected implements RejectedExecutionHandler {
-    private static final Logger log = Logger.getLogger(Server.class.getCanonicalName());
-
-    @Override
-    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-        log.info("Connection Rejected!");
-        ((ClientSession)r).close();
     }
 }

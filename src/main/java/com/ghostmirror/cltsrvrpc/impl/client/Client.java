@@ -46,12 +46,8 @@ public class Client implements IClient {
     }
 
     @Override
-    public IServerMessage remoteCall(String service, String method) throws ClientException, SocketException, ClientStopped {
-        return  remoteCall(service, method, new Object[0]);
-    }
-
-    @Override
-    public IServerMessage remoteCall(String service, String method, Object[] params) throws ClientException, SocketException, ClientStopped {
+    public IServerMessage remoteCall(String service, String method, Object... params)
+            throws ClientException, SocketException, ClientStopped {
         if(Shutdown) {
            throw new ClientStopped();
         }
@@ -67,14 +63,16 @@ public class Client implements IClient {
         }
     }
 
-    private IServerMessage remoteCall0(String service, String method, Object[] params) throws ClientException, SocketException {
+    private IServerMessage remoteCall0(String service, String method, Object[] params)
+            throws ClientException, SocketException {
         int sessionId = this.sessionId.incrementAndGet();
         int id = transmitter.writeMessage(factory.createMessage(sessionId, service, method, params));
         if(id == 0) {
             ClientException.raise("id == 0");
         }
         if(id != sessionId) {
-            ClientException.raise("Accepted ID("+id+") != Session ID("+sessionId+") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            ClientException.raise("Accepted ID("+id+") != Session ID("+sessionId+
+                    ") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         log.debug("Accepted : " + id);
 
@@ -84,7 +82,8 @@ public class Client implements IClient {
             throw new SocketException("obj == null");
         }
         if(obj.getId() != sessionId || obj.getRequest().getId() != sessionId) {
-            ClientException.raise("Response ID("+obj.getId()+"/"+obj.getRequest().getId()+") != Session ID("+sessionId+") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            ClientException.raise("Response ID("+obj.getId()+"/"+obj.getRequest().getId()+") != Session ID("+sessionId+
+                    ") !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         log.debug("Message Delivered : " + obj.getId());
 

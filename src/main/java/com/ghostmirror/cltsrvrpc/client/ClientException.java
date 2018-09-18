@@ -1,9 +1,14 @@
 package com.ghostmirror.cltsrvrpc.client;
 
+import com.ghostmirror.cltsrvrpc.common.EServerResult;
 import com.ghostmirror.cltsrvrpc.common.IServerMessage;
 
 public class ClientException extends Exception {
     private static final StringBuilder sb = new StringBuilder();
+
+    private ClientException() {
+        super();
+    }
 
     private ClientException(String message) {
         super(message);
@@ -14,12 +19,8 @@ public class ClientException extends Exception {
     }
 
     public static synchronized void raiseOnError(IServerMessage result) throws ClientException {
-        switch(result.getType()) {
-            case ID:         return;
-            case RESULT:     return;
-            case VOID:       return;
-            default:
-         }
+        if(result.getType().ordinal() <= EServerResult.VOID.ordinal()) {return;}
+
         sb.delete(0, sb.length());
         sb.append("ERROR! Message ID: ").append(result.getId());
         switch(result.getType()) {

@@ -16,6 +16,7 @@ import java.util.List;
 class ClientManager {
 //    private static final Logger log = Logger.getLogger(ClientManager.class.getCanonicalName());
     private static final Logger log = Logger.getLogger("Client");
+    
     public static void main(String args[]) {
         IClient client;
         List<Thread> threads = new ArrayList<>();
@@ -75,15 +76,16 @@ class Caller implements Runnable {
             try {
                 if(!c.isShutdown()) {
 // You can check Shutdown state before remoteCall
-                    c.remoteCall("arithmetic", "sum", new Object[]{33, 11});
+//                    c.remoteCall("arithmetic", "sum", new Object[]{33, 11});
+                    c.remoteCall("arithmetic", "sum", 33, 11);
                 }
 
-                message = c.remoteCall("arithmetic", "mul", new Object[]{5, 10});
+                message = c.remoteCall("arithmetic", "mul", 5, 10);
                 if(message.getType() == EServerResult.RESULT && ((Integer) message.getObject()).intValue() != 50) {
                     log.error("Result must be 50 but received " + ((Integer) message.getObject()).intValue());
                 }
-                c.remoteCall("arithmetic", "div", new Object[]{22, 4});
-                c.remoteCall("sleepy", "sleep", new Object[]{1});
+                c.remoteCall("arithmetic", "div", 22, 4);
+                c.remoteCall("sleepy", "sleep", 1);
 //                c.remoteCall("sleepy", "sleep", new Object[]{1000});
                 message = c.remoteCall("stupid",     "nothing");
                 if(message.getType() == EServerResult.RESULT) {
@@ -101,7 +103,7 @@ class Caller implements Runnable {
             } catch (ClientException e) {
 //                log.error(e.getMessage());
             } catch (ClientStopped e) {
-                log.info("Client Stopped!");
+                log.info("Client Manager Stopped!");
                 break;
             } catch (SocketException e) {
                 log.error("Caller: Socket Exception!");
@@ -114,5 +116,3 @@ class Caller implements Runnable {
         Thread.currentThread().interrupt();
     }
 }
-
-

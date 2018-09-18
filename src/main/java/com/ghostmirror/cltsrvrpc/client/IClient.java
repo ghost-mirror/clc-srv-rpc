@@ -7,6 +7,7 @@ import java.net.SocketException;
 
 public interface IClient extends IInterrupted {
     void start();
-    IServerMessage remoteCall(String service, String method, Object[] params) throws SocketException, ClientException, ClientStopped;
-    IServerMessage remoteCall(String service, String method) throws SocketException, ClientException, ClientStopped;
+    IServerMessage remoteCall(String service, String method, Object... params)
+            throws SocketException, ClientException, ClientStopped;
+
 }
